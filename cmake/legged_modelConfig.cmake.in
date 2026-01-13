@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# 这些会在下游 find_package(legged_model) 时自动执行
+find_dependency(Eigen3)
+find_dependency(pinocchio)
+find_dependency(manif)
+find_dependency(yaml-cpp)
+find_dependency(logger)
+
+# 导入导出的 targets（定义 legged_model::legged_model）
+include("${CMAKE_CURRENT_LIST_DIR}/legged_modelTargets.cmake")

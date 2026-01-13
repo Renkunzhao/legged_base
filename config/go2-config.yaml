@@ -1,0 +1,43 @@
+# Legged model configuration for Go2 robot
+verbose: false
+
+urdfPath: /root/code/go2_ws/src/legged_model/urdf/go2.urdf
+
+baseName: base
+contact3DofNames:
+  - FR_foot
+  - FL_foot
+  - RR_foot 
+  - RL_foot
+
+contact6DofNames: []
+
+hipNames:
+  - FR_thigh_joint
+  - FL_thigh_joint
+  - RR_thigh_joint
+  - RL_thigh_joint 
+
+jointOrder:
+  - FR_hip_joint 
+  - FR_thigh_joint
+  - FR_calf_joint
+  - FL_hip_joint
+  - FL_thigh_joint
+  - FL_calf_joint
+  - RR_hip_joint
+  - RR_thigh_joint
+  - RR_calf_joint
+  - RL_hip_joint
+  - RL_thigh_joint
+  - RL_calf_joint
+
+jointLimits:
+  min:
+    - -1.0472
+    - -0.2094
+    - -2.7227
+  max:
+    - 1.0472
+    - 1.9897
+    - -0.83776
