@@ -31,16 +31,16 @@ class LeggedModel {
 private:
     bool verbose_;
 
-    string baseType_;
     pinocchio::Model model_;
     pinocchio::Data data_;
 
-    size_t nJoints_;
-    vector<string> jointNames_;
-    vector<string> jointOrder_;     // custom order of joints, different from pinocchio default model order
-
+    string baseType_;
     size_t nqBase_;
     string baseName_;               // 基座名称
+
+    size_t nJoints_;
+    vector<string> jointNames_;     // Joint names in the default Pinocchio model order (alphabetical)
+    vector<string> jointOrder_;     // Custom joint ordering used by the controller, different from the Pinocchio model order
 
     // 3 Dof end effector
     size_t nContacts3Dof_;
@@ -62,10 +62,6 @@ public:
     const pinocchio::Model& model() const {return model_;}
     pinocchio::Data& data() {return data_;}
 
-    size_t nDof() const {return  nJoints_ + 6;}
-    size_t nJoints() const {return  nJoints_;}
-    const vector<string>& jointNames() const {return jointNames_;}
-
     const string& baseType() const {return baseType_;}
     size_t nqBase() const {return  nqBase_;}
     VectorXd qBase0() const {
@@ -83,6 +79,11 @@ public:
             throw runtime_error("[LeggedModel] qBase0: unknown baseType_");
         }
     }
+
+    size_t nDof() const {return  nJoints_ + 6;}
+    size_t nJoints() const {return  nJoints_;}
+    const vector<string>& jointNames() const {return jointNames_;}
+    const vector<string>& jointOrder() const {return jointOrder_;}
 
     size_t nContacts3Dof() const {return  nContacts3Dof_;}
     const vector<string>& contact3DofNames() const {return  contact3DofNames_;}
