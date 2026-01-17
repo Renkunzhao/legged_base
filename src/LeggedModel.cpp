@@ -28,12 +28,10 @@ void LeggedModel::loadConfig(const YAML::Node& node){
     }
     cout << endl;
 
-    Eigen::VectorXd qj_max(12), qj_min(12);
-    for (size_t i=0; i<4; ++i) {
-        qj_min.segment(3*i, 3) = yamlToEigenVector(node["jointLimits"]["min"]);
-        qj_max.segment(3*i, 3) = yamlToEigenVector(node["jointLimits"]["max"]);
-    }
-    this->setJointLimits(qj_max, qj_min);
+    qj_min_ = yamlToEigenVector(node["qj_min"]);
+    qj_max_ = yamlToEigenVector(node["qj_max"]);
+    tau_max_ = yamlToEigenVector(node["tau_max"]);
+    this->setJointLimits(qj_max_, qj_min_);
 }
 
 void LeggedModel::loadUrdf(string urdfPath, string baseType, string baseName,

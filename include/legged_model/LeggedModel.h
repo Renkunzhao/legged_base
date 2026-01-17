@@ -41,6 +41,7 @@ private:
     size_t nJoints_;
     vector<string> jointNames_;     // Joint names in the default Pinocchio model order (alphabetical)
     vector<string> jointOrder_;     // Custom joint ordering used by the controller, different from the Pinocchio model order
+    VectorXd qj_min_, qj_max_, tau_max_;    // Joint torque limits
 
     // 3 Dof end effector
     size_t nContacts3Dof_;
@@ -84,6 +85,19 @@ public:
     size_t nJoints() const {return  nJoints_;}
     const vector<string>& jointNames() const {return jointNames_;}
     const vector<string>& jointOrder() const {return jointOrder_;}
+    const VectorXd& qjMin() const {return qj_min_;}
+    const VectorXd& qjMax() const {return qj_max_;}
+    const VectorXd& tauMax() const {return tau_max_;}
+    void setJointLimits(VectorXd qj_max, VectorXd qj_min){
+        if (qj_max.size() != nJoints_ || qj_min.size() != nJoints_) {
+            throw runtime_error("[LeggedModel] setJointLimits: qMax/qMin vector size does not match nJoints_");
+        }
+
+        for(size_t i=0;i<nJoints_;++i){
+            model_.lowerPositionLimit[nqBase_ + i] = qj_min[i];
+            model_.upperPositionLimit[nqBase_ + i] = qj_max[i];
+        }
+    }
 
     size_t nContacts3Dof() const {return  nContacts3Dof_;}
     const vector<string>& contact3DofNames() const {return  contact3DofNames_;}
@@ -143,17 +157,6 @@ public:
         vector<string> contact6DofNames = {},
         vector<string> hipNames = {}, 
         bool verbose = false);
-
-    void setJointLimits(VectorXd qj_max, VectorXd qj_min){
-        if (qj_max.size() != nJoints_ || qj_min.size() != nJoints_) {
-            throw runtime_error("[LeggedModel] setJointLimits: qMax/qMin vector size does not match nJoints_");
-        }
-
-        for(size_t i=0;i<nJoints_;++i){
-            model_.lowerPositionLimit[nqBase_ + i] = qj_min[i];
-            model_.upperPositionLimit[nqBase_ + i] = qj_max[i];
-        }
-    }
 
     // This function call createCustomState of leggedState to create a custom state (consistent with q,v used in LeggedModel) in leggedState 
     void creatPinoState(LeggedState& leggedState) const {
