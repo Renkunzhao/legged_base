@@ -18,9 +18,6 @@
  * - COM 位置、速度、加速度和动量需要外部计算后设置。
  */
 
-using namespace std;
-using namespace Eigen;
-
 class LeggedState {
 private:
     // --- 机器人状态数据成员 (私有) ---
@@ -50,16 +47,16 @@ private:
     Eigen::VectorXd joint_tau_;
 
     // contact force
-    vector<string> ee3Dof_names_;
-    vector<bool> ee3Dof_contact_;
-    VectorXd ee3Dof_pos_;
-    VectorXd ee3Dof_vel_;
-    VectorXd ee3Dof_fc_;
-    vector<string> ee6Dof_names_;
-    vector<bool> ee6Dof_contact_;
-    VectorXd ee6Dof_pos_;
-    VectorXd ee6Dof_vel_;
-    VectorXd ee6Dof_fc_;
+    std::vector<std::string> ee3Dof_names_;
+    std::vector<bool> ee3Dof_contact_;
+    Eigen::VectorXd ee3Dof_pos_;
+    Eigen::VectorXd ee3Dof_vel_;
+    Eigen::VectorXd ee3Dof_fc_;
+    std::vector<std::string> ee6Dof_names_;
+    std::vector<bool> ee6Dof_contact_;
+    Eigen::VectorXd ee6Dof_pos_;
+    Eigen::VectorXd ee6Dof_vel_;
+    Eigen::VectorXd ee6Dof_fc_;
 
     Eigen::Vector3d com_pos_;
     Eigen::Vector3d com_vel_W_;
@@ -93,34 +90,14 @@ private:
     void updateCustomState();
 
 public:
-    /**
-    * Compute angular velocities expressed in the world frame from derivatives of ZYX-Euler angles
-    *
-    * @param [in] eulerZYX: ZYX-Euler angles
-    * @param [in] eulerZYX_dot: time-derivative of ZYX-Euler angles
-    * @return angular velocity expressed in world frame
-    */
-    static Eigen::Vector3d eulerZYX2AngularVelocityW(Eigen::Vector3d eulerZYX, Eigen::Vector3d eulerZYX_dot);
-
-    /**
-    * Compute derivatives of ZYX-Euler angles from global angular velocities
-    * The inverse of getGlobalAngularVelocityFromEulerAnglesZyxDerivatives
-    *
-    * This transformation is singular for y = +- pi / 2
-    *
-    * @param [in] eulerZYX: ZYX-Euler angles
-    * @param [in] base_ang_vel_W: angular velocity expressed in world frame
-    * @return derivatives of ZYX-Euler angles
-    */
-    static Eigen::Vector3d AngularVelocityW2eulerZYX(Eigen::Vector3d eulerZYX, Eigen::Vector3d base_ang_vel_W);
 
     /**
      * @brief 构造函数，用于仅作为数据容器。
      * @param num_joints 机器人关节数
      */
     LeggedState() = default;
-    LeggedState(int num_joints, std::vector<std::string> joint_names, vector<string> ee3Dof_names = {}, vector<string> ee6Dof_names = {}) {init(num_joints, joint_names, ee3Dof_names, ee6Dof_names);}
-    void init(int num_joints, std::vector<std::string> joint_names, vector<string> ee3Dof_names = {}, vector<string> ee6Dof_names = {});
+    LeggedState(int num_joints, std::vector<std::string> joint_names, std::vector<std::string> ee3Dof_names = {}, std::vector<std::string> ee6Dof_names = {}) {init(num_joints, joint_names, ee3Dof_names, ee6Dof_names);}
+    void init(int num_joints, std::vector<std::string> joint_names, std::vector<std::string> ee3Dof_names = {}, std::vector<std::string> ee6Dof_names = {});
 
     /**
      * @brief 创建自定义状态。
@@ -147,8 +124,8 @@ public:
      */
     void createCustomState(const std::string& state_name, const std::vector<std::string>& state_elements, 
                             std::vector<std::string> joint_order = {},
-                            vector<string> ee3Dof_order = {},
-                            vector<string> ee6Dof_order = {}) {
+                            std::vector<std::string> ee3Dof_order = {},
+                            std::vector<std::string> ee6Dof_order = {}) {
         if (custom_states_.count(state_name)) {
             throw std::runtime_error("Custom state already exists: " + state_name);
         }
@@ -253,14 +230,14 @@ public:
      */
     void setJointTau(const Eigen::VectorXd& joint_tau, const std::vector<std::string>& joint_order = {});
     
-    void setEE3DofContact(const vector<bool>& ee3Dof_contact, const vector<string>& ee3Dof_order = {});
-    void setEE3DofPos(const VectorXd& ee3Dof_pos, const vector<string>& ee3Dof_order = {});
-    void setEE3DofVel(const VectorXd& ee3Dof_vel, const vector<string>& ee3Dof_order = {});
-    void setEE3DofFc(const VectorXd& ee3Dof_fc, const vector<string>& ee3Dof_order = {});
-    void setEE6DofContact(const vector<bool>& ee6Dof_contact, const vector<string>& ee6Dof_order = {});
-    void setEE6DofPos(const VectorXd& ee6Dof_pos, const vector<string>& ee6Dof_order = {});
-    void setEE6DofVel(const VectorXd& ee6Dof_vel, const vector<string>& ee6Dof_order = {});
-    void setEE6DofFc(const VectorXd& ee6Dof_fc, const vector<string>& ee6Dof_order = {});
+    void setEE3DofContact(const std::vector<bool>& ee3Dof_contact, const std::vector<std::string>& ee3Dof_order = {});
+    void setEE3DofPos(const Eigen::VectorXd& ee3Dof_pos, const std::vector<std::string>& ee3Dof_order = {});
+    void setEE3DofVel(const Eigen::VectorXd& ee3Dof_vel, const std::vector<std::string>& ee3Dof_order = {});
+    void setEE3DofFc(const Eigen::VectorXd& ee3Dof_fc, const std::vector<std::string>& ee3Dof_order = {});
+    void setEE6DofContact(const std::vector<bool>& ee6Dof_contact, const std::vector<std::string>& ee6Dof_order = {});
+    void setEE6DofPos(const Eigen::VectorXd& ee6Dof_pos, const std::vector<std::string>& ee6Dof_order = {});
+    void setEE6DofVel(const Eigen::VectorXd& ee6Dof_vel, const std::vector<std::string>& ee6Dof_order = {});
+    void setEE6DofFc(const Eigen::VectorXd& ee6Dof_fc, const std::vector<std::string>& ee6Dof_order = {});
 
     void setComPos(const Eigen::Vector3d& com_pos) { com_pos_ = com_pos; }
     void setComVelW(const Eigen::Vector3d& com_vel_W) { com_vel_W_ = com_vel_W; }
@@ -296,8 +273,8 @@ public:
     const Eigen::VectorXd& joint_pos() const { return joint_pos_; }
     const Eigen::VectorXd& joint_vel() const { return joint_vel_; }
     const Eigen::VectorXd& joint_tau() const { return joint_tau_; }
-    vector<bool> ee3Dof_contact(const vector<string>& ee3Dof_order) const;
-    vector<bool> ee6Dof_contact(const vector<string>& ee6Dof_order) const;
+    std::vector<bool> ee3Dof_contact(const std::vector<std::string>& ee3Dof_order) const;
+    std::vector<bool> ee6Dof_contact(const std::vector<std::string>& ee6Dof_order) const;
     const Eigen::VectorXd& ee3Dof_pos() const { return ee3Dof_pos_; }
     const Eigen::VectorXd& ee3Dof_vel() const { return ee3Dof_vel_; }
     const Eigen::VectorXd& ee3Dof_fc() const { return ee3Dof_fc_; }

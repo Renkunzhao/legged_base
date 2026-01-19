@@ -141,6 +141,8 @@ public:
     }
     bool inverseKine3Dof(VectorXd qBase, VectorXd& qJoints, VectorXd qJoints0 = VectorXd(), vector<Vector3d> contact3DofPoss = {});
     VectorXd inverseDiffKine3Dof(VectorXd q_pin, VectorXd vBase, vector<Vector3d> contact3DofVels = {});
+    // return joint positions only in custom order
+    VectorXd stanceIK(Vector3d base_pos, Vector3d base_eulerZYX = Vector3d::Zero());
 
     // Dynamics
     VectorXd g(const VectorXd& q_pin) {

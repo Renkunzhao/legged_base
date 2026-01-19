@@ -1,7 +1,9 @@
 #include "legged_model/LeggedState.h"
-#include "logger/CsvLogger.h"
 #include "legged_model/Utils.h"
+#include "legged_model/Rotation.h"
+#include "logger/CsvLogger.h"
 
+#include <Eigen/src/Geometry/Quaternion.h>
 #include <iostream>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -9,7 +11,7 @@
 #include <stdexcept>
 #include <vector>
 
-using namespace legged;
+using namespace LeggedAI;
 
 // private
 std::map<std::string, Eigen::VectorXd> LeggedState::getStateMap() const {
@@ -68,34 +70,13 @@ void LeggedState::updateCustomState() {
     }
 }
 
-// static
-Eigen::Vector3d LeggedState::eulerZYX2AngularVelocityW(Eigen::Vector3d eulerZYX, Eigen::Vector3d eulerZYX_dot) {
-  const double sz = sin(eulerZYX[0]);
-  const double cz = cos(eulerZYX(0));
-  const double sy = sin(eulerZYX(1));
-  const double cy = cos(eulerZYX(1));
-  const double dz = eulerZYX_dot(0);
-  const double dy = eulerZYX_dot(1);
-  const double dx = eulerZYX_dot(2);
-  return { -sz * dy + cy * cz * dx, cz * dy + cy * sz * dx, dz - sy * dx };
-}
-
-Eigen::Vector3d LeggedState::AngularVelocityW2eulerZYX(Eigen::Vector3d eulerZYX, Eigen::Vector3d base_ang_vel_W) {
-  const double sz = sin(eulerZYX(0));
-  const double cz = cos(eulerZYX(0));
-  const double sy = sin(eulerZYX(1));
-  const double cy = cos(eulerZYX(1));
-  const double wx = base_ang_vel_W(0);
-  const double wy = base_ang_vel_W(1);
-  const double wz = base_ang_vel_W(2);
-  const double tmp = cz * wx / cy + sz * wy / cy;
-  return {sy * tmp + wz, -sz * wx + cz * wy, tmp};
-}
-
 // public
 // --- 构造函数实现 ---
 // 构造函数：仅作为数据容器
-void LeggedState::init(int num_joints, std::vector<std::string> joint_names, vector<string> ee3Dof_names, vector<string> ee6Dof_names) {
+void LeggedState::init(int num_joints, 
+    std::vector<std::string> joint_names, 
+    std::vector<std::string> ee3Dof_names, 
+    std::vector<std::string> ee6Dof_names) {
     if (joint_names.size()!=num_joints) {
         throw std::runtime_error("[LeggedState] num_joints and size of joint_names didn't match.");
     }
@@ -115,27 +96,27 @@ void LeggedState::init(int num_joints, std::vector<std::string> joint_names, vec
     // 初始化关节向量大小
     num_joints_ = num_joints;
     joint_names_ = joint_names;
-    joint_pos_ = VectorXd::Zero(num_joints_);
-    joint_vel_ = VectorXd::Zero(num_joints_);
-    joint_tau_ = VectorXd::Zero(num_joints_);
+    joint_pos_ = Eigen::VectorXd::Zero(num_joints_);
+    joint_vel_ = Eigen::VectorXd::Zero(num_joints_);
+    joint_tau_ = Eigen::VectorXd::Zero(num_joints_);
 
     ee3Dof_names_ = ee3Dof_names;
     ee6Dof_names_ = ee6Dof_names;
     ee3Dof_contact_.resize(ee3Dof_names_.size(), true);
     ee6Dof_contact_.resize(ee6Dof_names_.size(), true);
-    ee3Dof_pos_ = VectorXd::Zero(ee3Dof_names_.size()*3);
-    ee3Dof_vel_ = VectorXd::Zero(ee3Dof_names_.size()*3);
-    ee3Dof_fc_ = VectorXd::Zero(ee3Dof_names_.size()*3);
-    ee6Dof_pos_ = VectorXd::Zero(ee6Dof_names.size()*6);
-    ee6Dof_vel_ = VectorXd::Zero(ee6Dof_names.size()*6);
-    ee6Dof_fc_ = VectorXd::Zero(ee6Dof_names.size()*6);
+    ee3Dof_pos_ = Eigen::VectorXd::Zero(ee3Dof_names_.size()*3);
+    ee3Dof_vel_ = Eigen::VectorXd::Zero(ee3Dof_names_.size()*3);
+    ee3Dof_fc_ = Eigen::VectorXd::Zero(ee3Dof_names_.size()*3);
+    ee6Dof_pos_ = Eigen::VectorXd::Zero(ee6Dof_names.size()*6);
+    ee6Dof_vel_ = Eigen::VectorXd::Zero(ee6Dof_names.size()*6);
+    ee6Dof_fc_ = Eigen::VectorXd::Zero(ee6Dof_names.size()*6);
 
-    rbd_state_ = VectorXd::Zero(getRbdStateSize());
+    rbd_state_ = Eigen::VectorXd::Zero(getRbdStateSize());
 }
 
 void LeggedState::clear(){
     setBasePos(Eigen::Vector3d::Zero());
-    setBaseRotationFromQuaternion(Eigen::Quaternion<double>::Identity());
+    setBaseRotationFromQuaternion(Eigen::Quaterniond::Identity());
     setBaseLinearVelocityW(Eigen::Vector3d::Zero());
     setBaseAngularVelocityW(Eigen::Vector3d::Zero());
     setJointPos(Eigen::VectorXd::Zero(num_joints_));
@@ -224,11 +205,7 @@ void LeggedState::setBaseRotationFromQuaternion(const Eigen::VectorXd& quat) {
 
 void LeggedState::setBaseRotationFromEulerZYX(const Eigen::Vector3d& eulerZYX) {
     base_eulerZYX_ = eulerZYX;
-    Eigen::AngleAxisd yaw(base_eulerZYX_[0], Eigen::Vector3d::UnitZ());
-    Eigen::AngleAxisd pitch(base_eulerZYX_[1], Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd roll(base_eulerZYX_[2], Eigen::Vector3d::UnitX());
-
-    base_quat_ = yaw * pitch * roll;
+    base_quat_ = eulerZYX2Quat(eulerZYX);
     base_R_ = base_quat_.toRotationMatrix();
 }
 
@@ -247,18 +224,18 @@ void LeggedState::setBaseLinearVelocityB(const Eigen::Vector3d& lin_vel_B) {
 void LeggedState::setBaseAngularVelocityW(const Eigen::Vector3d& ang_vel_W) {
     base_ang_vel_W_ = ang_vel_W;
     base_ang_vel_B_ = base_R_.transpose() * base_ang_vel_W_;
-    base_eulerZYX_dot_ = AngularVelocityW2eulerZYX(base_eulerZYX_, base_ang_vel_W_);
+    base_eulerZYX_dot_ = angVelW2EulerZYXDot(base_eulerZYX_, base_ang_vel_W_);
 }
 
 void LeggedState::setBaseAngularVelocityB(const Eigen::Vector3d& ang_vel_B) {
     base_ang_vel_B_ = ang_vel_B;
     base_ang_vel_W_ = base_R_ * base_ang_vel_B_;
-    base_eulerZYX_dot_ = AngularVelocityW2eulerZYX(base_eulerZYX_, base_ang_vel_W_);
+    base_eulerZYX_dot_ = angVelW2EulerZYXDot(base_eulerZYX_, base_ang_vel_W_);
 }
 
 void LeggedState::setBaseEulerZYXDot(const Eigen::Vector3d& base_eulerZYX_dot) {
     base_eulerZYX_dot_ = base_eulerZYX_dot;
-    base_ang_vel_W_ = eulerZYX2AngularVelocityW(base_eulerZYX_, base_eulerZYX_dot_);
+    base_ang_vel_W_ = eulerZYXDot2AngVelW(base_eulerZYX_, base_eulerZYX_dot_);
     base_ang_vel_B_ = base_R_.transpose() * base_ang_vel_W_;
 }
 
@@ -307,17 +284,17 @@ void LeggedState::setEE3DofContact(const std::vector<bool>& ee3Dof_contact, cons
     }
 }
 
-vector<bool> LeggedState::ee3Dof_contact(const vector<string>& ee3Dof_order) const {
+std::vector<bool> LeggedState::ee3Dof_contact(const std::vector<std::string>& ee3Dof_order) const {
     if (ee3Dof_order.empty()) {
         return ee3Dof_contact_;
     } else {
-        vector<bool> reordered;
+        std::vector<bool> reordered;
         reorder(ee3Dof_names_, ee3Dof_contact_, ee3Dof_order, reordered);
         return reordered;
     }
 }
 
-void LeggedState::setEE3DofPos(const VectorXd& ee3Dof_pos, const vector<string>& ee3Dof_order) {
+void LeggedState::setEE3DofPos(const Eigen::VectorXd& ee3Dof_pos, const std::vector<std::string>& ee3Dof_order) {
     if (ee3Dof_order.empty()) {
         if (ee3Dof_pos.size() != ee3Dof_pos_.size()) {
             throw std::runtime_error("[LeggedState] ee3Dof_pos size mismatch.");
@@ -328,7 +305,7 @@ void LeggedState::setEE3DofPos(const VectorXd& ee3Dof_pos, const vector<string>&
     } 
 }
 
-void LeggedState::setEE3DofVel(const VectorXd& ee3Dof_vel, const vector<string>& ee3Dof_order) {
+void LeggedState::setEE3DofVel(const Eigen::VectorXd& ee3Dof_vel, const std::vector<std::string>& ee3Dof_order) {
     if (ee3Dof_order.empty()) {
         if (ee3Dof_vel.size() != ee3Dof_vel_.size()) {
             throw std::runtime_error("[LeggedState] ee3Dof_vel size mismatch.");
@@ -339,7 +316,7 @@ void LeggedState::setEE3DofVel(const VectorXd& ee3Dof_vel, const vector<string>&
     } 
 }
 
-void LeggedState::setEE3DofFc(const VectorXd& ee3Dof_fc, const vector<string>& ee3Dof_order) {
+void LeggedState::setEE3DofFc(const Eigen::VectorXd& ee3Dof_fc, const std::vector<std::string>& ee3Dof_order) {
     if (ee3Dof_order.empty()) {
         if (ee3Dof_fc.size() != ee3Dof_fc_.size()) {
             throw std::runtime_error("[LeggedState] ee3Dof_fc size mismatch.");
@@ -361,17 +338,17 @@ void LeggedState::setEE6DofContact(const std::vector<bool>& ee6Dof_contact, cons
     }
 }
 
-vector<bool> LeggedState::ee6Dof_contact(const vector<string>& ee6Dof_order) const {
+std::vector<bool> LeggedState::ee6Dof_contact(const std::vector<std::string>& ee6Dof_order) const {
     if (ee6Dof_order.empty()) {
         return ee6Dof_contact_;
     } else {
-        vector<bool> reordered;
+        std::vector<bool> reordered;
         reorder(ee6Dof_names_, ee6Dof_contact_, ee6Dof_order, reordered);
         return reordered; 
     }
 }
 
-void LeggedState::setEE6DofPos(const VectorXd& ee6Dof_pos, const vector<string>& ee6Dof_order) {
+void LeggedState::setEE6DofPos(const Eigen::VectorXd& ee6Dof_pos, const std::vector<std::string>& ee6Dof_order) {
     if (ee6Dof_order.empty()) {
         if (ee6Dof_pos.size() != ee6Dof_pos_.size()) {
             throw std::runtime_error("[LeggedState] ee6Dof_pos size mismatch.");
@@ -382,7 +359,7 @@ void LeggedState::setEE6DofPos(const VectorXd& ee6Dof_pos, const vector<string>&
     } 
 }
 
-void LeggedState::setEE6DofVel(const VectorXd& ee6Dof_vel, const vector<string>& ee6Dof_order) {
+void LeggedState::setEE6DofVel(const Eigen::VectorXd& ee6Dof_vel, const std::vector<std::string>& ee6Dof_order) {
     if (ee6Dof_order.empty()) {
         if (ee6Dof_vel.size() != ee6Dof_vel_.size()) {
             throw std::runtime_error("[LeggedState] ee6Dof_vel size mismatch.");
@@ -393,7 +370,7 @@ void LeggedState::setEE6DofVel(const VectorXd& ee6Dof_vel, const vector<string>&
     } 
 }
 
-void LeggedState::setEE6DofFc(const VectorXd& ee6Dof_fc, const vector<string>& ee6Dof_order) {
+void LeggedState::setEE6DofFc(const Eigen::VectorXd& ee6Dof_fc, const std::vector<std::string>& ee6Dof_order) {
     if (ee6Dof_order.empty()) {
         if (ee6Dof_fc.size() != ee6Dof_fc_.size()) {
             throw std::runtime_error("[LeggedState] ee6Dof_fc size mismatch.");

@@ -36,6 +36,7 @@ find_package(logger REQUIRED)
 # 3️⃣ 创建库（导出给上游用）
 ##############################
 add_library(${PROJECT_NAME} STATIC
+    src/Rotation.cpp
     src/LeggedState.cpp
     src/LeggedModel.cpp
 )

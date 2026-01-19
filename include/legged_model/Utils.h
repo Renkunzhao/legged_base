@@ -4,7 +4,7 @@
 
 using namespace Eigen;
 
-namespace legged {
+namespace LeggedAI {
 
 inline double smoothstep(double t, size_t order = 5) {
     t = std::clamp(t, 0.0, 1.0);

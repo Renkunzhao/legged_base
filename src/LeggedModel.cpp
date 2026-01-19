@@ -2,6 +2,7 @@
 #include "legged_model/Math.h"
 #include "legged_model/Lie.h"
 #include "legged_model/Utils.h"
+#include "legged_model/Rotation.h"
 #include <Eigen/src/Core/Matrix.h>
 #include <cstddef>
 #include <iostream>
@@ -10,7 +11,7 @@
 #include <pinocchio/math/rpy.hpp>
 
 using namespace Lie;
-using namespace legged;
+using namespace LeggedAI;
 
 void LeggedModel::loadConfig(const YAML::Node& node){
     this->loadUrdf(node["urdfPath"].as<string>(), "quaternion",
@@ -114,9 +115,9 @@ vector<Eigen::Vector3d> LeggedModel::contact3DofPoss(const Eigen::VectorXd& q_pi
     return contact3DofPoss;
 }
 
-VectorXd LeggedModel::contact3DofPossOrder(const VectorXd& jointPos, const VectorXd& qBase){
+Eigen::VectorXd LeggedModel::contact3DofPossOrder(const Eigen::VectorXd& jointPos, const Eigen::VectorXd& qBase){
     Eigen::VectorXd q_pin(nqBase_ + nJoints_), qJoint(nJoints_);
-    legged::reorder(jointOrder_, jointPos, jointNames_, qJoint);
+    LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qJoint);
     if (qBase.size() == 0) {
         q_pin << qBase0(), qJoint;
     } else {
@@ -180,22 +181,22 @@ Eigen::MatrixXd LeggedModel::jacobian3Dof(Eigen::VectorXd q_pin){
     return jac;
 }
 
-MatrixXd LeggedModel::jacobian3DofOrder(const VectorXd& jointPos, const VectorXd& qBase) {
+Eigen::MatrixXd LeggedModel::jacobian3DofOrder(const Eigen::VectorXd& jointPos, const Eigen::VectorXd& qBase) {
     Eigen::VectorXd q_pin(nqBase_ + nJoints_), qJoint(nJoints_);
-    legged::reorder(jointOrder_, jointPos, jointNames_, qJoint);
+    LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qJoint);
     if (qBase.size() == 0) {
         q_pin << qBase0(), qJoint;
     } else {
         q_pin << qBase, qJoint;
     }
-    MatrixXd jac_reordered(3*nContacts3Dof_, 6 + nJoints_);
+    Eigen::MatrixXd jac_reordered(3*nContacts3Dof_, 6 + nJoints_);
     jac_reordered = jacobian3Dof(q_pin);
-    legged::reorder_cols(jointNames_, jacobian3Dof(q_pin).rightCols(nJoints_), jointOrder_, jac_reordered.rightCols(nJoints_));
+    LeggedAI::reorder_cols(jointNames_, jacobian3Dof(q_pin).rightCols(nJoints_), jointOrder_, jac_reordered.rightCols(nJoints_));
     return jac_reordered;
 }
 
-MatrixXd LeggedModel::jacobian3DofSimped(const VectorXd& jointPos) {
-    MatrixXd jac(3*nContacts3Dof_, 3);
+Eigen::MatrixXd LeggedModel::jacobian3DofSimped(const Eigen::VectorXd& jointPos) {
+    Eigen::MatrixXd jac(3*nContacts3Dof_, 3);
     jac.setZero();
     auto jac_full = jacobian3DofOrder(jointPos);
     for (size_t i = 0; i < nContacts3Dof_; ++i) {
@@ -210,7 +211,7 @@ MatrixXd LeggedModel::jacobian3DofSimped(const VectorXd& jointPos) {
     return jac;
 }
 
-bool LeggedModel::inverseKine3Dof(VectorXd qBase, VectorXd& qJoints, VectorXd qJoints0, vector<Vector3d> contact3DofPoss) {
+bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoints, Eigen::VectorXd qJoints0, vector<Eigen::Vector3d> contact3DofPoss) {
     if (qBase.size() != nqBase_) {
         throw runtime_error("Base pose vector size does not match nqBase_");
     }
@@ -234,7 +235,7 @@ bool LeggedModel::inverseKine3Dof(VectorXd qBase, VectorXd& qJoints, VectorXd qJ
     }
 
     // TODO don't use 
-    Eigen::Matrix3d R;
+    Matrix3d R;
     if (baseType_ == "quaternion") {
         // qBase xyzw, quat_ToR require wxyz
         R = quat_ToR(quat_wxyz(qBase.tail(4)));
@@ -302,6 +303,14 @@ bool LeggedModel::inverseKine3Dof(VectorXd qBase, VectorXd& qJoints, VectorXd qJ
         }
     }
     return false;
+}
+
+Eigen::VectorXd LeggedModel::stanceIK(Eigen::Vector3d base_pos, Eigen::Vector3d base_eulerZYX) {
+    Eigen::VectorXd qBase(7);
+    qBase << base_pos, eulerZYX2QuatVec(base_eulerZYX);
+    Eigen::VectorXd jointPos = Eigen::VectorXd::Zero(nJoints_);
+    reorder(jointNames_, inverseKine3Dof(qBase).tail(nJoints_), jointOrder_, jointPos);
+    return jointPos;
 }
 
 // \dot{q}_j = J_j^+(v - J_b \dot{q}_b)
