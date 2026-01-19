@@ -23,6 +23,32 @@ Vector4d eulerZYX2QuatVec(const Vector3d& eulerZYX)
     return eulerZYX2Quat(eulerZYX).coeffs(); // [x y z w]
 }
 
+Eigen::Vector3d quat2eulerZYX(const Eigen::Vector4d& quat)
+{
+    // quat = [x, y, z, w]  (Eigen / Pinocchio convention)
+    Eigen::Quaterniond q(quat[3], quat[0], quat[1], quat[2]);
+    q.normalize();
+
+    Eigen::Vector3d eulerZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);
+    // ref: pinocchio::rpy::matrixToRpy
+      if (eulerZYX[1] < -M_PI / 2)
+        eulerZYX[1] += 2 * M_PI;
+
+      if (eulerZYX[1] > M_PI / 2)
+      {
+        eulerZYX[1] = M_PI - eulerZYX[1];
+        if (eulerZYX[2] < 0)
+          eulerZYX[2] += M_PI;
+        else
+          eulerZYX[2] -= M_PI;
+        // eulerZYX[0] > 0 according to Eigen's eulerAngles doc, no need to check its sign
+        eulerZYX[0] -= M_PI;
+      }
+
+    return eulerZYX;
+}
+
+
 Vector3d eulerZYXDot2AngVelW(const Vector3d& eulerZYX,
                             const Vector3d& eulerZYX_dot)
 {

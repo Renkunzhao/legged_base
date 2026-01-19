@@ -30,6 +30,14 @@ Eigen::Quaterniond eulerZYX2Quat(const Eigen::Vector3d& eulerZYX);
 Eigen::Vector4d eulerZYX2QuatVec(const Eigen::Vector3d& eulerZYX);
 
 /**
+ * Compute ZYX Euler angles (yaw, pitch, roll) from quaternion.
+ *
+ * @param eulerZYX  Quaternion (x, y, z, w) in Eigen convention
+ * @return ZYX Euler angles: [yaw, pitch, roll]
+ */
+Eigen::Vector3d quat2eulerZYX(const Eigen::Vector4d& quat);
+
+/**
  * Convert ZYX Euler angle derivatives to angular velocity expressed in the WORLD frame.
  *
  * Note:

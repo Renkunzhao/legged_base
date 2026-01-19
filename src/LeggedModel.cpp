@@ -275,9 +275,14 @@ bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoint
             Eigen::VectorXd qj_min = model_.lowerPositionLimit.tail(nJoints_);
 
             if ( ((qJoints.array() < qj_min.array()) || (qJoints.array() > qj_max.array())).any() ) {
-                if (verbose_) {
-                    cout << "[LeggedModel] inverseKine3Dof: joint pos out of range." 
-                            << "\n qBase: " << qBase.transpose() << endl;
+                if (true) {
+                    if (baseType_ == "quaternion") {
+                        cout << "[LeggedModel] inverseKine3Dof: joint pos out of range." 
+                                << "\n qBase: " << qBase.head(3).transpose() << " " << quat2eulerZYX(qBase.tail(4)).transpose() << endl;   
+                    } else if (baseType_ == "eulerZYX") {
+                        cout << "[LeggedModel] inverseKine3Dof: joint pos out of range." 
+                                << "\n qBase: " << qBase.transpose() << endl;  
+                    }
                     for (size_t i=0;i<contact3DofNames_.size();++i) {
                         cout << contact3DofNames_[i] << ": " << contact3DofPoss[i].transpose() << endl;
                     }

@@ -62,6 +62,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 add_executable(Math_test test/Math_test.cpp)
 target_link_libraries(Math_test PRIVATE ${PROJECT_NAME})
 
+add_executable(Rotation_test test/Rotation_test.cpp)
+target_link_libraries(Rotation_test PRIVATE ${PROJECT_NAME})
+
 add_executable(Lie_test test/Lie_test.cpp)
 target_link_libraries(Lie_test PRIVATE ${PROJECT_NAME})
 
@@ -137,7 +140,7 @@ if(ament_cmake_FOUND)
     message(STATUS "Found ament_cmake")
 
     # 安装可执行文件
-    install(TARGETS Math_test Lie_test LeggedState_test LeggedModel_test
+    install(TARGETS Math_test Rotation_test Lie_test LeggedState_test LeggedModel_test
         DESTINATION lib/${PROJECT_NAME}
     )
 
