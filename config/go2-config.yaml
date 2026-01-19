@@ -10,6 +10,12 @@ contact3DofNames:
   - RR_foot 
   - RL_foot
 
+contact3DofPossInit:
+  [0.1934, -0.142, 0,
+  0.1934, 0.142, 0,
+  -0.1934, -0.142, 0,
+  -0.1934, 0.142, 0]
+
 contact6DofNames: []
 
 hipNames:

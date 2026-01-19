@@ -21,6 +21,11 @@ void LeggedModel::loadConfig(const YAML::Node& node){
                     node["hipNames"].as<vector<string>>(),
                     node["verbose"].as<bool>());
 
+    contact3DofPossInit_ = splitVectors<Eigen::Vector3d>(yamlToEigenVector(node["contact3DofPossInit"]), 3) ;
+    if (contact3DofPossInit_.size() != nContacts3Dof_) {
+        std::cout << "[LeggedModel] contact3DofPossInit and contact3DofNames size doesn't match.\n";  
+    }
+
     jointOrder_ = node["jointOrder"].as<vector<string>>();
     // print custom joint order
     cout << "[LeggedModel] Custom joint order: ";
@@ -225,7 +230,8 @@ bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoint
     }
 
     if (contact3DofPoss.empty()) {
-        contact3DofPoss = hipPossProjected(qBase);
+        // contact3DofPoss = hipPossProjected(qBase);
+        contact3DofPoss = contact3DofPossInit_;
         if (verbose_)
             cout << "[LeggedModel] Auto-generated default foot targets from hip projections." << endl;
     }

@@ -47,6 +47,7 @@ private:
     size_t nContacts3Dof_;
     vector<string> contact3DofNames_;
     vector<size_t> contact3DofIds_;
+    std::vector<Eigen::Vector3d> contact3DofPossInit_;
 
     // 6 Dof end effector
     size_t nContacts6Dof_;
