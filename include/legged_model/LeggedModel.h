@@ -48,7 +48,7 @@ private:
     size_t nJoints_;
     vector<string> jointNames_;     // Joint names in the default Pinocchio model order (alphabetical)
     vector<string> jointOrder_;     // Custom joint ordering used by the controller, different from the Pinocchio model order
-    VectorXd qj_min_, qj_max_, tau_max_;    // Joint torque limits
+    VectorXd qj_min_, qj_max_, tau_max_;    // Joint torque limits, all in custom order
 
     // 3 Dof end effector
     size_t nContacts3Dof_;
