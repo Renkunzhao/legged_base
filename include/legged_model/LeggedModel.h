@@ -17,6 +17,13 @@
 using namespace Eigen;
 using namespace std;
 
+enum class IKStatus : int
+{
+    Success          = 1,   // 求解成功，且在范围内
+    OutOfRange       = 0,   // 求解成功，但关节/末端超范围
+    Failure          = -1   // 数值失败 / 不可解
+};
+
 /**
     * @brief LeggedModel 类，封装了 Pinocchio 模型的基本操作
     * @note baseType_ = "quaternion" 时
@@ -83,6 +90,7 @@ public:
     }
 
     size_t nDof() const {return  nJoints_ + 6;}
+    size_t nqPin() const {return  nJoints_ + nqBase_;}
     size_t nJoints() const {return  nJoints_;}
     const vector<string>& jointNames() const {return jointNames_;}
     const vector<string>& jointOrder() const {return jointOrder_;}
@@ -134,16 +142,10 @@ public:
     MatrixXd jacobian3DofOrder(const VectorXd& jointPos, const VectorXd& qBase = VectorXd());
     MatrixXd jacobian3DofSimped(const VectorXd& jointPos);
 
-    VectorXd inverseKine3Dof(VectorXd qBase, VectorXd qJoints0 = VectorXd(), vector<Vector3d> contact3DofPoss = {}) {
-        VectorXd q_pin(nqBase_ + nJoints_), qJoints(nJoints_);
-        inverseKine3Dof(qBase, qJoints, qJoints0, contact3DofPoss);
-        q_pin << qBase, qJoints;
-        return q_pin;
-    }
-    bool inverseKine3Dof(VectorXd qBase, VectorXd& qJoints, VectorXd qJoints0 = VectorXd(), vector<Vector3d> contact3DofPoss = {});
+    IKStatus inverseKine3Dof(VectorXd qBase, VectorXd& q_pin, VectorXd qJoints0 = VectorXd(), vector<Vector3d> contact3DofPoss = {});
     VectorXd inverseDiffKine3Dof(VectorXd q_pin, VectorXd vBase, vector<Vector3d> contact3DofVels = {});
     // return joint positions only in custom order
-    VectorXd stanceIK(Vector3d base_pos, Vector3d base_eulerZYX = Vector3d::Zero());
+    IKStatus stanceIK(VectorXd& jointPos, Vector3d base_pos, Vector3d base_eulerZYX = Vector3d::Zero());
 
     // Dynamics
     VectorXd g(const VectorXd& q_pin) {

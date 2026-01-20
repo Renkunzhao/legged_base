@@ -121,7 +121,7 @@ vector<Eigen::Vector3d> LeggedModel::contact3DofPoss(const Eigen::VectorXd& q_pi
 }
 
 Eigen::VectorXd LeggedModel::contact3DofPossOrder(const Eigen::VectorXd& jointPos, const Eigen::VectorXd& qBase){
-    Eigen::VectorXd q_pin(nqBase_ + nJoints_), qJoint(nJoints_);
+    Eigen::VectorXd q_pin(this->nqPin()), qJoint(nJoints_);
     LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qJoint);
     if (qBase.size() == 0) {
         q_pin << qBase0(), qJoint;
@@ -187,7 +187,7 @@ Eigen::MatrixXd LeggedModel::jacobian3Dof(Eigen::VectorXd q_pin){
 }
 
 Eigen::MatrixXd LeggedModel::jacobian3DofOrder(const Eigen::VectorXd& jointPos, const Eigen::VectorXd& qBase) {
-    Eigen::VectorXd q_pin(nqBase_ + nJoints_), qJoint(nJoints_);
+    Eigen::VectorXd q_pin(this->nqPin()), qJoint(nJoints_);
     LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qJoint);
     if (qBase.size() == 0) {
         q_pin << qBase0(), qJoint;
@@ -216,7 +216,7 @@ Eigen::MatrixXd LeggedModel::jacobian3DofSimped(const Eigen::VectorXd& jointPos)
     return jac;
 }
 
-bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoints, Eigen::VectorXd qJoints0, vector<Eigen::Vector3d> contact3DofPoss) {
+IKStatus LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& q_pin, Eigen::VectorXd qJoints0, vector<Eigen::Vector3d> contact3DofPoss) {
     if (qBase.size() != nqBase_) {
         throw runtime_error("Base pose vector size does not match nqBase_");
     }
@@ -276,12 +276,12 @@ bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoint
 
         if (err.norm() < tol) {
             if (verbose_) cout << "[LeggedModel] IK Converged in " << i << " iterations. Final error: " << err.norm() << endl;
-            qJoints = q.tail(nJoints_);
+            q_pin << qBase, q.tail(nJoints_);
             Eigen::VectorXd qj_max = model_.upperPositionLimit.tail(nJoints_);
             Eigen::VectorXd qj_min = model_.lowerPositionLimit.tail(nJoints_);
 
-            if ( ((qJoints.array() < qj_min.array()) || (qJoints.array() > qj_max.array())).any() ) {
-                if (true) {
+            if ( ((q_pin.tail(nJoints_).array() < qj_min.array()) || (q_pin.tail(nJoints_).array() > qj_max.array())).any() ) {
+                if (verbose_) {
                     if (baseType_ == "quaternion") {
                         cout << "[LeggedModel] inverseKine3Dof: joint pos out of range." 
                                 << "\n qBase: " << qBase.head(3).transpose() << " " << quat2eulerZYX(qBase.tail(4)).transpose() << endl;   
@@ -292,14 +292,17 @@ bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoint
                     for (size_t i=0;i<contact3DofNames_.size();++i) {
                         cout << contact3DofNames_[i] << ": " << contact3DofPoss[i].transpose() << endl;
                     }
-                    cout << "qJoints: " << qJoints.transpose() << endl;
+                    cout << "qJoints: " << q_pin.tail(nJoints_).transpose() << endl;
                     throw runtime_error("[LeggedModel] inverseKine3Dof: joint pos out of range.");
                 }
-                qJoints = qJoints.cwiseMax(qj_min).cwiseMin(qj_max);
-                return false;
+                q_pin.tail(nJoints_) = q_pin.tail(nJoints_).cwiseMax(qj_min).cwiseMin(qj_max);
+                std::cout << "[LeggedModel] IK solve successfully, but joint pos out of range, applying clip."
+                        << "\norigin:" << q.tail(nJoints_).transpose()
+                        << "\ncliped:" << q_pin.tail(nJoints_).transpose() << std::endl;
+                return IKStatus::OutOfRange;
             }
 
-            return true;
+            return IKStatus::Success;
         }
         
         Jj = jacobian3Dof(q).rightCols(nJoints_);
@@ -313,15 +316,28 @@ bool LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& qJoint
             angle = atan2(sin(angle), cos(angle));
         }
     }
-    return false;
+    return IKStatus::Failure;
 }
 
-Eigen::VectorXd LeggedModel::stanceIK(Eigen::Vector3d base_pos, Eigen::Vector3d base_eulerZYX) {
-    Eigen::VectorXd qBase(7);
-    qBase << base_pos, eulerZYX2QuatVec(base_eulerZYX);
-    Eigen::VectorXd jointPos = Eigen::VectorXd::Zero(nJoints_);
-    reorder(jointNames_, inverseKine3Dof(qBase).tail(nJoints_), jointOrder_, jointPos);
-    return jointPos;
+IKStatus LeggedModel::stanceIK(VectorXd& jointPos, Eigen::Vector3d base_pos, Eigen::Vector3d base_eulerZYX) {
+    if (jointPos.size()!=nJoints_) {
+        std::cout << "[LeggedModel] stanceIK: joint size doesn't match!\n";
+    }
+
+    Eigen::VectorXd qBase(nqBase_), q_pin(this->nqPin());
+    if (baseType_ == "quaternion") {
+        qBase << base_pos, eulerZYX2QuatVec(base_eulerZYX);
+    } else if (baseType_ == "eulerZYX") {
+        qBase << base_pos, base_eulerZYX;
+    }
+    auto status = inverseKine3Dof(qBase, q_pin);
+    reorder(jointNames_, q_pin.tail(nJoints_), jointOrder_, jointPos);
+
+    if (true && status!=IKStatus::Success) {
+        std::cout << "[LeggedModel] stanceIK: IK solve status: " << (int)status 
+        << "\nbase pos: " << base_pos.transpose() << "\n base eulerZYX" << base_eulerZYX.transpose() << std::endl;
+    }
+    return status;
 }
 
 // \dot{q}_j = J_j^+(v - J_b \dot{q}_b)
