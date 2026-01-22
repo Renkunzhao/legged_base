@@ -1,6 +1,5 @@
 #include "legged_model/LeggedModel.h"
 
-#include <Eigen/src/Core/Matrix.h>
 #include <cstddef>
 #include <iostream>
 #include <ostream>

@@ -79,6 +79,23 @@ inline Eigen::VectorXd yamlToEigenVector(const YAML::Node& node) {
     return Eigen::Map<Eigen::VectorXd>(vec.data(), vec.size());
 }
 
+// 将 Eigen 向量转换为 std::vector，保持相同类型
+template <typename Derived>
+inline std::vector<typename Derived::Scalar>
+eigenToStdVec(const Eigen::DenseBase<Derived>& v) {
+  using Scalar = typename Derived::Scalar;
+  const Scalar* ptr = v.derived().data();
+  return std::vector<Scalar>(ptr, ptr + v.size());
+}
+
+inline std::vector<float> stdVecDoubleToFloat(const std::vector<double>& v) {
+  std::vector<float> out(v.size());
+  for (size_t i = 0; i < v.size(); ++i) {
+    out[i] = static_cast<float>(v[i]);
+  }
+  return out;
+}
+
 // 将 std::vector<Eigen::VectorX> 拼成一个大的 VectorXd
 template <typename VecT>
 inline Eigen::VectorXd concatVectors(const std::vector<VecT>& vecs)

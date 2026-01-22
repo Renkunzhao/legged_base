@@ -3,7 +3,6 @@
 #include "legged_model/Lie.h"
 #include "legged_model/Utils.h"
 #include "legged_model/Rotation.h"
-#include <Eigen/src/Core/Matrix.h>
 #include <cstddef>
 #include <iostream>
 #include <pinocchio/parsers/urdf.hpp>
