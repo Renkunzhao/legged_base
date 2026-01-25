@@ -107,6 +107,12 @@ public:
             model_.upperPositionLimit[nqBase_ + i] = qj_max[i];
         }
     }
+    void setTauMax(VectorXd tau_max){
+        if (tau_max.size() != nJoints_) {
+            throw runtime_error("[LeggedModel] setTauMax: tau_max vector size does not match nJoints_");
+        }
+        tau_max_ = tau_max;
+    }
 
     size_t nContacts3Dof() const {return  nContacts3Dof_;}
     const vector<string>& contact3DofNames() const {return  contact3DofNames_;}
