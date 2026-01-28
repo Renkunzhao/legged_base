@@ -36,7 +36,7 @@ void LeggedModel::loadConfig(const YAML::Node& node){
     qj_min_ = yamlToEigenVector(node["qj_min"]);
     qj_max_ = yamlToEigenVector(node["qj_max"]);
     tau_max_ = yamlToEigenVector(node["tau_max"]);
-    this->setJointLimits(qj_max_, qj_min_);
+    this->setJointLimitsOrder(qj_max_, qj_min_);
 }
 
 void LeggedModel::loadUrdf(string urdfPath, string baseType, string baseName,
@@ -72,6 +72,18 @@ void LeggedModel::loadUrdf(string urdfPath, string baseType, string baseName,
             cout << i << ": " << model_.frames[i].name << endl;
         }
     }
+
+    std::cout << "---- Contacts ----" << std::endl;
+    std::cout << "3Dof Contacts: ";
+    for (const auto& contactName : contact3DofNames) {
+        std::cout << contactName << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "6Dof Contacts: ";
+    for (const auto& contactName : contact6DofNames) {
+        std::cout << contactName << " ";
+    }
+    std::cout << std::endl;
 
     data_ = pinocchio::Data(model_);    
 
@@ -199,33 +211,37 @@ Eigen::MatrixXd LeggedModel::jacobian3DofOrder(const Eigen::VectorXd& jointPos, 
     return jac_reordered;
 }
 
-Eigen::MatrixXd LeggedModel::jacobian3DofSimped(const Eigen::VectorXd& jointPos) {
+Eigen::MatrixXd LeggedModel::jacobian3DofLegwise(const Eigen::MatrixXd& jac_full) {
     Eigen::MatrixXd jac(3*nContacts3Dof_, 3);
     jac.setZero();
-    auto jac_full = jacobian3DofOrder(jointPos);
     for (size_t i = 0; i < nContacts3Dof_; ++i) {
         // This require that the order of contact3DofNames_ matches the order of joints controlling them!!!
         jac.block(3*i, 0, 3, 3) = jac_full.block(3*i, 6+3*i, 3, 3);
     }
 
     if (verbose_) {
-        cout << "[LeggedModel] Original   3Dof Jacobian:\n" << jac_full << endl;
-        cout << "[LeggedModel] Simplified 3Dof Jacobian:\n" << jac << endl;
+        cout << "[LeggedModel] Full Jacobian:\n" << jac_full << endl;
+        cout << "[LeggedModel] Leg Jacobian :\n" << jac << endl;
     }
     return jac;
 }
 
-IKStatus LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& q_pin, Eigen::VectorXd qJoints0, vector<Eigen::Vector3d> contact3DofPoss) {
+IKStatus LeggedModel::inverseKine3Dof(
+        Eigen::VectorXd qBase, 
+        Eigen::VectorXd& q_pin, 
+        Eigen::VectorXd qj_pin_init, 
+        vector<Eigen::Vector3d> contact3DofPoss
+    ) {
     if (qBase.size() != nqBase_) {
         throw runtime_error("Base pose vector size does not match nqBase_");
     }
 
-    if (qJoints0.size() == 0) {
-        // No init qJoints0
+    if (qj_pin_init.size() == 0) {
+        // No init qj_pin_init
         if (verbose_)
             cout << "[LeggedModel] No initial guess provided. Using default guess.\n";
-        qJoints0 = (model_.lowerPositionLimit + model_.upperPositionLimit)/2;
-        qJoints0 = qJoints0.tail(nJoints_);
+        qj_pin_init = (model_.lowerPositionLimit + model_.upperPositionLimit)/2;
+        qj_pin_init = qj_pin_init.tail(nJoints_);
     }
 
     if (contact3DofPoss.empty()) {
@@ -258,7 +274,7 @@ IKStatus LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& q_
     int max_iters = 1000;
     double tol = 1e-4, dt = 0.1, damping = 1e-6;
     Eigen::VectorXd q(model_.nq); 
-    q << qBase0(), qJoints0;
+    q << qBase0(), qj_pin_init;
     if (verbose_) cout << "[LeggedModel] IK start from " << q.transpose() << endl;
     // err = [err_foot_1^T, err_foot_2^T, ...]^T
     Eigen::VectorXd err = Eigen::VectorXd::Zero(nContacts3Dof_*3);
@@ -318,9 +334,9 @@ IKStatus LeggedModel::inverseKine3Dof(Eigen::VectorXd qBase, Eigen::VectorXd& q_
     return IKStatus::Failure;
 }
 
-IKStatus LeggedModel::stanceIK(VectorXd& jointPos, Eigen::Vector3d base_pos, Eigen::Vector3d base_eulerZYX) {
+IKStatus LeggedModel::stanceIKOrder(VectorXd& jointPos, Eigen::Vector3d base_pos, Eigen::Vector3d base_eulerZYX) {
     if (jointPos.size()!=nJoints_) {
-        std::cout << "[LeggedModel] stanceIK: joint size doesn't match!\n";
+        std::cout << "[LeggedModel] stanceIKOrder: joint size doesn't match!\n";
     }
 
     Eigen::VectorXd qBase(nqBase_), q_pin(this->nqPin());
@@ -333,7 +349,7 @@ IKStatus LeggedModel::stanceIK(VectorXd& jointPos, Eigen::Vector3d base_pos, Eig
     reorder(jointNames_, q_pin.tail(nJoints_), jointOrder_, jointPos);
 
     if (true && status!=IKStatus::Success) {
-        std::cout << "[LeggedModel] stanceIK: IK solve status: " << (int)status 
+        std::cout << "[LeggedModel] stanceIKOrder: IK solve status: " << (int)status 
         << "\nbase pos: " << base_pos.transpose() << "\n base eulerZYX" << base_eulerZYX.transpose() << std::endl;
     }
     return status;

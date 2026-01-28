@@ -28,9 +28,9 @@ void solveStanceIKInteractive(LeggedModel& leggedModel)
         base_pos << x, y, z;
         base_eulerZYX << yaw, pitch, roll;   // [yaw, pitch, roll]
 
-        auto status = leggedModel.stanceIK(jointPos, base_pos, base_eulerZYX);
+        auto status = leggedModel.stanceIKOrder(jointPos, base_pos, base_eulerZYX);
 
-        std::cout << "[LeggedModel] stanceIK solve " << (status==IKStatus::Success ? "SUCCESS" : "FAIL")
+        std::cout << "[LeggedModel] stanceIKOrder solve " << (status==IKStatus::Success ? "SUCCESS" : "FAIL")
                   << "\n  base_pos      : " << base_pos.transpose()
                   << "\n  base_eulerZYX : " << base_eulerZYX.transpose()
                   << "\n";

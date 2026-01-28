@@ -27,6 +27,9 @@ enum class IKStatus : int
 
 /**
     * @brief LeggedModel 类，封装了 Pinocchio 模型的基本操作
+    * @note Joints order in Pinocchio model fixed (alphabetical), 
+    *       so we need to maintain a custom joint order used by controller
+    * @note All q_pin and v_pin in functions are in Pinocchio
     * @note baseType_ = "quaternion" 时
                 q_pinocchio = [base_pos, base_quaternion(x y z w), q_joint]
                 v_pinocchio = [base_linearVel(base), base_angularVel(base), dq_joint]
@@ -93,12 +96,63 @@ public:
     size_t nDof() const {return  nJoints_ + 6;}
     size_t nqPin() const {return  nJoints_ + nqBase_;}
     size_t nJoints() const {return  nJoints_;}
+
+    size_t nContacts3Dof() const {return  nContacts3Dof_;}
+    const vector<string>& contact3DofNames() const {return  contact3DofNames_;}
+    const vector<size_t>& contact3DofIds() const {return  contact3DofIds_;}
+    
+    size_t nContacts6Dof() const {return  nContacts6Dof_;}
+    const vector<string>& contact6DofNames() const {return  contact6DofNames_;}
+    const vector<size_t>& contact6DofIds() const {return  contact6DofIds_;}
+
+    // calculate hip joint positions give qBase, assume zero joint angles cause hip is directly connected to base
+    vector<Vector3d> hipPoss(const VectorXd& qBase);
+    vector<Vector3d> hipPossProjected(const VectorXd& qBase);
+    
+    // Pinocchio order
+    VectorXd tauMax() const {
+        Eigen::VectorXd tau_max(nJoints_);
+        LeggedAI::reorder(jointOrder_, tau_max_, jointNames_, tau_max);
+        return tau_max;
+    }
     const vector<string>& jointNames() const {return jointNames_;}
+
+    vector<Vector3d> contact3DofPoss(const VectorXd& q_pin);
+    vector<Vector3d> contact3DofVels(const VectorXd& q_pin, const VectorXd& v_pin);
+
+    vector<Vector3d> contact6DofPoss(const VectorXd& q_pin);
+    vector<Vector3d> contact6DofVels(const VectorXd& q_pin, const VectorXd& v_pin);
+
+    Vector3d com(const VectorXd& q_pin) {return pinocchio::centerOfMass(model_, data_, q_pin);}
+    Vector3d vcom(const VectorXd& q_pin, const VectorXd& v_pin) {
+        pinocchio::centerOfMass(model_, data_, q_pin, v_pin);
+        return data_.vcom[0];
+    }
+    VectorXd hcom(const VectorXd& q_pin, const VectorXd& v_pin) {
+        pinocchio::computeCentroidalMomentum(model_, data_, q_pin, v_pin);
+        return data_.hg.toVector();
+    }
+
+    // stacked jacobian of all 3Dof contact point, [3*nContacts3Dof_, nDof]
+    MatrixXd jacobian3Dof(VectorXd q_pin);
+    IKStatus inverseKine3Dof(VectorXd qBase, VectorXd& q_pin, VectorXd qj_pin_init = VectorXd(), vector<Vector3d> contact3DofPoss = {});
+    VectorXd inverseDiffKine3Dof(VectorXd q_pin, VectorXd vBase, vector<Vector3d> contact3DofVels = {});
+
+    // Dynamics
+    VectorXd g(const VectorXd& q_pin) {
+        return pinocchio::computeGeneralizedGravity(model_, data_, q_pin);
+    };
+
+    VectorXd nle(const VectorXd& q_pin, const VectorXd& v_pin) {
+        return pinocchio::nonLinearEffects(model_, data_, q_pin, v_pin);
+    };
+
+    // Custom order
     const vector<string>& jointOrder() const {return jointOrder_;}
-    const VectorXd& qjMin() const {return qj_min_;}
-    const VectorXd& qjMax() const {return qj_max_;}
-    const VectorXd& tauMax() const {return tau_max_;}
-    void setJointLimits(VectorXd qj_max, VectorXd qj_min){
+    const VectorXd& qjMinOrder() const {return qj_min_;}
+    const VectorXd& qjMaxOrder() const {return qj_max_;}
+    const VectorXd& tauMaxOrder() const {return tau_max_;}
+    void setJointLimitsOrder(VectorXd qj_max, VectorXd qj_min){
         if (qj_max.size() != nJoints_ || qj_min.size() != nJoints_) {
             throw runtime_error("[LeggedModel] setJointLimits: qMax/qMin vector size does not match nJoints_");
         }
@@ -111,61 +165,31 @@ public:
             model_.upperPositionLimit[nqBase_ + i] = qj_pin_max[i];
         }
     }
-    void setTauMax(VectorXd tau_max){
+    void setTauMaxOrder(VectorXd tau_max){
         if (tau_max.size() != nJoints_) {
             throw runtime_error("[LeggedModel] setTauMax: tau_max vector size does not match nJoints_");
         }
         tau_max_ = tau_max;
     }
 
-    size_t nContacts3Dof() const {return  nContacts3Dof_;}
-    const vector<string>& contact3DofNames() const {return  contact3DofNames_;}
-    const vector<size_t>& contact3DofIds() const {return  contact3DofIds_;}
-    vector<Vector3d> contact3DofPoss(const VectorXd& q_pin);
-    vector<Vector3d> contact3DofVels(const VectorXd& q_pin, const VectorXd& v_pin);
-    // jointPos is in custom order, return contact3DofPoss in order of contact3DofNames_ and stacked as [ee1_pos, ee2_pos, ...]
     VectorXd contact3DofPossOrder(const VectorXd& jointPos, const VectorXd& qBase = VectorXd());
-    
-    size_t nContacts6Dof() const {return  nContacts6Dof_;}
-    const vector<string>& contact6DofNames() const {return  contact6DofNames_;}
-    const vector<size_t>& contact6DofIds() const {return  contact6DofIds_;}
-    vector<Vector3d> contact6DofPoss(const VectorXd& q_pin);
-    vector<Vector3d> contact6DofVels(const VectorXd& q_pin, const VectorXd& v_pin);
-
-    // calculate hip joint positions give qBase, assume zero joint angles cause hip is directly connected to base
-    vector<Vector3d> hipPoss(const VectorXd& qBase);
-    vector<Vector3d> hipPossProjected(const VectorXd& qBase);
-    
-    Vector3d com(const VectorXd& q_pin) {return pinocchio::centerOfMass(model_, data_, q_pin);}
-    Vector3d vcom(const VectorXd& q_pin, const VectorXd& v_pin) {
-        pinocchio::centerOfMass(model_, data_, q_pin, v_pin);
-        return data_.vcom[0];
-    }
-    VectorXd hcom(const VectorXd& q_pin, const VectorXd& v_pin) {
-        pinocchio::computeCentroidalMomentum(model_, data_, q_pin, v_pin);
-        return data_.hg.toVector();
-    }
-
-    /*
-        stack jacobian of all 3Dof contact point, [3*nContacts3Dof_, nDof]
-    */
-    MatrixXd jacobian3Dof(VectorXd q_pin);
     MatrixXd jacobian3DofOrder(const VectorXd& jointPos, const VectorXd& qBase = VectorXd());
-    MatrixXd jacobian3DofSimped(const VectorXd& jointPos);
-
-    IKStatus inverseKine3Dof(VectorXd qBase, VectorXd& q_pin, VectorXd qJoints0 = VectorXd(), vector<Vector3d> contact3DofPoss = {});
-    VectorXd inverseDiffKine3Dof(VectorXd q_pin, VectorXd vBase, vector<Vector3d> contact3DofVels = {});
-    // return joint positions only in custom order
-    IKStatus stanceIK(VectorXd& jointPos, Vector3d base_pos, Vector3d base_eulerZYX = Vector3d::Zero());
-
-    // Dynamics
-    VectorXd g(const VectorXd& q_pin) {
-        return pinocchio::computeGeneralizedGravity(model_, data_, q_pin);
+    MatrixXd jacobian3DofLegwise(const MatrixXd& jac_full);
+    IKStatus inverseKine3DofOrder(
+            VectorXd qBase, 
+            VectorXd& jointPos, 
+            VectorXd jointPos0 = VectorXd(), 
+            vector<Vector3d> contact3DofPoss = {}) {
+        VectorXd q_pin(nqPin()), qj_pin(nJoints_), qj_pin_init(nJoints_);   
+        LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qj_pin);
+        LeggedAI::reorder(jointOrder_, jointPos0, jointNames_, qj_pin_init);
+        q_pin << qBase, qj_pin;
+        auto status = inverseKine3Dof(qBase, q_pin, qj_pin_init, contact3DofPoss);
+        LeggedAI::reorder(jointNames_, q_pin.tail(nJoints_), jointOrder_, jointPos);
+        return status;
     };
+    IKStatus stanceIKOrder(VectorXd& jointPos, Vector3d base_pos, Vector3d base_eulerZYX = Vector3d::Zero());
 
-    VectorXd nle(const VectorXd& q_pin, const VectorXd& v_pin) {
-        return pinocchio::nonLinearEffects(model_, data_, q_pin, v_pin);
-    };
 
     void loadConfig(const YAML::Node& node);
     void loadUrdf(string urdfPath, string baseType, string baseName, 
