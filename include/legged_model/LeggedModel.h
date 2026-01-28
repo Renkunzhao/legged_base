@@ -75,6 +75,8 @@ public:
     const pinocchio::Model& model() const {return model_;}
     pinocchio::Data& data() {return data_;}
 
+    double mass() const {return pinocchio::computeTotalMass(model_);}
+
     const string& baseType() const {return baseType_;}
     size_t nqBase() const {return  nqBase_;}
     VectorXd qBase0() const {
