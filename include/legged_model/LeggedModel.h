@@ -128,6 +128,7 @@ public:
     vector<Vector3d> contact6DofPoss(const VectorXd& q_pin);
     vector<Vector3d> contact6DofVels(const VectorXd& q_pin, const VectorXd& v_pin);
 
+    // calculate hip joint positions give qBase, assume zero joint angles cause hip is directly connected to base
     vector<Vector3d> hipPoss(const VectorXd& qBase);
     vector<Vector3d> hipPossProjected(const VectorXd& qBase);
     
