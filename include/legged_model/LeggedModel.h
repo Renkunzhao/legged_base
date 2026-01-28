@@ -2,6 +2,7 @@
 #define LEGGEDMODEL_H
 
 #include "legged_model/LeggedState.h"
+#include "legged_model/Utils.h"
 
 #include <Eigen/src/Core/Matrix.h>
 #include <cstddef>
@@ -43,11 +44,11 @@ private:
 
     string baseType_;
     size_t nqBase_;
-    string baseName_;               // 基座名称
+    string baseName_;
 
     size_t nJoints_;
     vector<string> jointNames_;     // Joint names in the default Pinocchio model order (alphabetical)
-    vector<string> jointOrder_;     // Custom joint ordering used by the controller, different from the Pinocchio model order
+    vector<string> jointOrder_;     // Custom joint ordering used by the controller, specified in config file
     VectorXd qj_min_, qj_max_, tau_max_;    // Joint torque limits, all in custom order
 
     // 3 Dof end effector
@@ -102,9 +103,12 @@ public:
             throw runtime_error("[LeggedModel] setJointLimits: qMax/qMin vector size does not match nJoints_");
         }
 
+        Eigen::VectorXd qj_pin_max(nJoints_), qj_pin_min(nJoints_);
+        LeggedAI::reorder(jointOrder_, qj_min, jointNames_, qj_pin_min);
+        LeggedAI::reorder(jointOrder_, qj_max, jointNames_, qj_pin_max);
         for(size_t i=0;i<nJoints_;++i){
-            model_.lowerPositionLimit[nqBase_ + i] = qj_min[i];
-            model_.upperPositionLimit[nqBase_ + i] = qj_max[i];
+            model_.lowerPositionLimit[nqBase_ + i] = qj_pin_min[i];
+            model_.upperPositionLimit[nqBase_ + i] = qj_pin_max[i];
         }
     }
     void setTauMax(VectorXd tau_max){
