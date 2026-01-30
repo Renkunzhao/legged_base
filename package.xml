@@ -8,9 +8,10 @@
 
     <!-- <buildtool_depend>catkin</buildtool_depend> -->
     <buildtool_depend>ament_cmake</buildtool_depend>
-    
-    <depend>pinocchio</depend>
+
     <depend>logger</depend>
+    <depend>pinocchio</depend>
+    <depend>manif</depend>
 
     <export>
         <build_type>ament_cmake</build_type>
