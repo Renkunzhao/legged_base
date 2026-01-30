@@ -1,7 +1,7 @@
 # Legged model configuration for Go2 robot
 verbose: false
 
-urdfPath: /root/code/go2_ws/src/legged_model/urdf/go2.urdf
+urdfPath: src/legged_base/urdf/go2.urdf
 
 baseName: base
 contact3DofNames:

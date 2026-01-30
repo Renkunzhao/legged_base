@@ -13,7 +13,7 @@ using namespace Lie;
 using namespace LeggedAI;
 
 void LeggedModel::loadConfig(const YAML::Node& node){
-    this->loadUrdf(node["urdfPath"].as<string>(), "quaternion",
+    this->loadUrdf(LeggedAI::getEnv("WORKSPACE") + "/" + node["urdfPath"].as<string>(), "quaternion",
                     node["baseName"].as<string>(), 
                     node["contact3DofNames"].as<vector<string>>(), 
                     node["contact6DofNames"].as<vector<string>>(),

@@ -1,10 +1,21 @@
 #pragma once
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
+#include <cstdlib>
+#include <stdexcept>
+#include <string>
 
 using namespace Eigen;
 
 namespace LeggedAI {
+
+inline std::string getEnv(const std::string& env_name) {
+    const char* env_value = std::getenv(env_name.c_str());
+    if (!env_value) {
+        throw std::runtime_error("Environment variable '" + env_name + "' is not set");
+    }
+    return std::string(env_value);
+}
 
 inline double smoothstep(double t, size_t order = 5) {
     t = std::clamp(t, 0.0, 1.0);
