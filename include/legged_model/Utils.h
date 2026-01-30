@@ -1,9 +1,13 @@
 #pragma once
-#include <Eigen/Dense>
-#include <yaml-cpp/yaml.h>
+
+#include <algorithm>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
+#include <algorithm>
+#include <unordered_map>
+#include <Eigen/Dense>
+#include <yaml-cpp/yaml.h>
 
 using namespace Eigen;
 
