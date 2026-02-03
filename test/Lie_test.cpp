@@ -1,4 +1,4 @@
-#include "legged_model/Lie.h"
+#include "legged_base/Lie.h"
 
 #include "iostream"
 #include <Eigen/src/Geometry/Quaternion.h>

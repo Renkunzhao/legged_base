@@ -1,6 +1,6 @@
 // Kunzhao Ren, LeggedAI Lab, Inc. 2026
 
-#include "legged_model/Rotation.h"
+#include "legged_base/Rotation.h"
 #include <cmath>
 
 namespace LeggedAI {

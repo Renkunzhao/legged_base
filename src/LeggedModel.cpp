@@ -1,8 +1,8 @@
-#include "legged_model/LeggedModel.h"
-#include "legged_model/Math.h"
-#include "legged_model/Lie.h"
-#include "legged_model/Utils.h"
-#include "legged_model/Rotation.h"
+#include "legged_base/LeggedModel.h"
+#include "legged_base/Math.h"
+#include "legged_base/Lie.h"
+#include "legged_base/Utils.h"
+#include "legged_base/Rotation.h"
 #include <cstddef>
 #include <iostream>
 #include <pinocchio/parsers/urdf.hpp>

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <chrono>
-#include "legged_model/Math.h"
+#include "legged_base/Math.h"
 
 using namespace std;
 using namespace std::chrono;

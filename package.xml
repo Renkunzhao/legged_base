@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-    <name>legged_model</name>
+    <name>legged_base</name>
     <version>0.0.0</version>
     <description>legged model</description>
     <maintainer email="rkzdtc@gmail.com">Kunzhao Ren</maintainer>

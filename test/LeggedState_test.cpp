@@ -1,4 +1,4 @@
-#include "legged_model/LeggedState.h"
+#include "legged_base/LeggedState.h"
 
 #include <iostream>
 #include <Eigen/Dense>

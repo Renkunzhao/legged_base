@@ -1,4 +1,4 @@
-#include "legged_model/LeggedModel.h"
+#include "legged_base/LeggedModel.h"
 
 #include <cstddef>
 #include <iostream>

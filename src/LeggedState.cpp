@@ -1,6 +1,6 @@
-#include "legged_model/LeggedState.h"
-#include "legged_model/Utils.h"
-#include "legged_model/Rotation.h"
+#include "legged_base/LeggedState.h"
+#include "legged_base/Utils.h"
+#include "legged_base/Rotation.h"
 #include "logger/CsvLogger.h"
 
 #include <Eigen/src/Geometry/Quaternion.h>

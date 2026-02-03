@@ -1,8 +1,8 @@
 #ifndef LEGGEDMODEL_H
 #define LEGGEDMODEL_H
 
-#include "legged_model/LeggedState.h"
-#include "legged_model/Utils.h"
+#include "legged_base/LeggedState.h"
+#include "legged_base/Utils.h"
 
 #include <Eigen/src/Core/Matrix.h>
 #include <cstddef>

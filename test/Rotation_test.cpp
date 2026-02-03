@@ -1,4 +1,4 @@
-#include "legged_model/Rotation.h"
+#include "legged_base/Rotation.h"
 #include <iostream>
 
 using namespace Eigen;
