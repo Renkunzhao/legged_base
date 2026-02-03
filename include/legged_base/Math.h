@@ -3,6 +3,13 @@
 #include <Eigen/Dense>
 #include <algorithm> // for std::max
 
+namespace LeggedAI {
+
+template <typename T>
+inline int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 /// @brief Moore–Penrose pseudoinverse using SVD
 /// @param J  Input matrix
 /// @param tol  Relative tolerance (default 1e-9)
@@ -36,3 +43,5 @@ inline Eigen::MatrixXd pseudoInverseDLS(const Eigen::MatrixXd &J, double lambda 
     Eigen::MatrixXd JJt_damped = JJt + lambda * Eigen::MatrixXd::Identity(JJt.rows(), JJt.cols());
     return J.transpose() * JJt_damped.ldlt().solve(Eigen::MatrixXd::Identity(JJt.rows(), JJt.cols()));
 }
+
+} // namespace LeggedAI
