@@ -1,0 +1,74 @@
+# Legged model configuration for G1 robot
+verbose: false
+
+urdfPath: src/legged_base/urdf/g1_29dof.urdf
+
+baseName: pelvis
+contact3DofNames: []
+contact3DofPossInit: []
+contact6DofNames: [
+  left_ankle_roll_link,
+  right_ankle_roll_link,
+]
+contact6DofPossInit: []
+
+hipNames: []
+
+jointOrder:
+  - left_hip_pitch_joint 
+  - left_hip_roll_joint
+  - left_hip_yaw_joint
+  - left_knee_joint
+  - left_ankle_pitch_joint
+  - left_ankle_roll_joint
+
+  - right_hip_pitch_joint
+  - right_hip_roll_joint
+  - right_hip_yaw_joint
+  - right_knee_joint
+  - right_ankle_pitch_joint
+  - right_ankle_roll_joint
+
+  - waist_yaw_joint
+  - waist_roll_joint
+  - waist_pitch_joint
+
+  - left_shoulder_pitch_joint
+  - left_shoulder_roll_joint
+  - left_shoulder_yaw_joint
+  - left_elbow_joint
+  - left_wrist_roll_joint
+  - left_wrist_pitch_joint
+  - left_wrist_yaw_joint
+
+  - right_shoulder_pitch_joint
+  - right_shoulder_roll_joint
+  - right_shoulder_yaw_joint
+  - right_elbow_joint
+  - right_wrist_roll_joint
+  - right_wrist_pitch_joint
+  - right_wrist_yaw_joint
+
+# Reasonable range
+qj_min: [
+    -2.5307, -0.5236, -2.7576, -0.087267, -0.87267, -0.2618,
+    -2.5307, -2.9671, -2.7576, -0.087267, -0.87267, -0.2618,
+    -2.618,  -0.52,   -0.52,
+    -3.0892, -1.5882, -2.618,  -1.0472,   -1.97222, -1.61443, -1.61443,
+    -3.0892, -2.2515, -2.618,  -1.0472,   -1.97222, -1.61443, -1.61443
+  ]
+qj_max: [
+     2.8798,  2.9671,  2.7576,  2.8798,    0.5236,   0.2618,
+     2.8798,  0.5236,  2.7576,  2.8798,    0.5236,   0.2618,
+     2.618,   0.52,    0.52,
+     2.6704,  2.2515,  2.618,   2.0944,    1.97222,  1.61443,  1.61443,
+     2.6704,  1.5882,  2.618,   2.0944,    1.97222,  1.61443,  1.61443
+  ]
+
+tau_max: [
+     88,      88,      88,      139,       50,       50,
+     88,      88,      88,      139,       50,       50,
+     88,      50,      50,
+     25,      25,      25,      25,        25,       5,        5,
+     25,      25,      25,      25,        25,       5,        5,
+  ]

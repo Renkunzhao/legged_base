@@ -73,8 +73,14 @@ target_link_libraries(Lie_test PRIVATE ${PROJECT_NAME})
 add_executable(LeggedState_test test/LeggedState_test.cpp)
 target_link_libraries(LeggedState_test PRIVATE ${PROJECT_NAME})
 
+add_executable(Pinocchio_test test/Pinocchio_test.cpp)
+target_link_libraries(Pinocchio_test PRIVATE ${PROJECT_NAME})
+
 add_executable(LeggedModel_test test/LeggedModel_test.cpp)
 target_link_libraries(LeggedModel_test PRIVATE ${PROJECT_NAME})
+
+add_executable(IK_test test/IK_test.cpp)
+target_link_libraries(IK_test PRIVATE ${PROJECT_NAME})
 
 ##############################
 # 5️⃣ 安装：库 + 头文件 + CMake Package（关键）
@@ -142,7 +148,7 @@ if(ament_cmake_FOUND)
     message(STATUS "Found ament_cmake")
 
     # 安装可执行文件
-    install(TARGETS Math_test Rotation_test Lie_test LeggedState_test LeggedModel_test
+    install(TARGETS Math_test Rotation_test Lie_test LeggedState_test LeggedModel_test IK_test Pinocchio_test
         DESTINATION lib/${PROJECT_NAME}
     )
 
