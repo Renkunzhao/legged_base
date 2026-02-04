@@ -11,7 +11,7 @@
 
 using namespace Eigen;
 
-namespace LeggedAI {
+namespace legged_base {
 
 inline std::string getEnv(const std::string& env_name) {
     const char* env_value = std::getenv(env_name.c_str());
@@ -86,7 +86,7 @@ inline VectorXd baseSlerp(double t,
 }
 
 // 将 YAML list 转换为 Eigen::VectorXd
-inline Eigen::VectorXd yamlToEigenVector(const YAML::Node& node) {
+inline Eigen::VectorXd yamlToEigenVec(const YAML::Node& node) {
     if (!node || !node.IsSequence()) {
         throw std::runtime_error("YAML node is not a valid sequence.");
     }

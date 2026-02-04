@@ -114,7 +114,7 @@ public:
     // Pinocchio order
     VectorXd tauMax() const {
         Eigen::VectorXd tau_max(nJoints_);
-        LeggedAI::reorder(jointOrder_, tau_max_, jointNames_, tau_max);
+        legged_base::reorder(jointOrder_, tau_max_, jointNames_, tau_max);
         return tau_max;
     }
     const vector<string>& jointNames() const {return jointNames_;}
@@ -160,8 +160,8 @@ public:
         }
 
         Eigen::VectorXd qj_pin_max(nJoints_), qj_pin_min(nJoints_);
-        LeggedAI::reorder(jointOrder_, qj_min, jointNames_, qj_pin_min);
-        LeggedAI::reorder(jointOrder_, qj_max, jointNames_, qj_pin_max);
+        legged_base::reorder(jointOrder_, qj_min, jointNames_, qj_pin_min);
+        legged_base::reorder(jointOrder_, qj_max, jointNames_, qj_pin_max);
         for(size_t i=0;i<nJoints_;++i){
             model_.lowerPositionLimit[nqBase_ + i] = qj_pin_min[i];
             model_.upperPositionLimit[nqBase_ + i] = qj_pin_max[i];
@@ -183,11 +183,11 @@ public:
             VectorXd jointPos0 = VectorXd(), 
             vector<Vector3d> contact3DofPoss = {}) {
         VectorXd q_pin(nqPin()), qj_pin(nJoints_), qj_pin_init(nJoints_);   
-        LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qj_pin);
-        LeggedAI::reorder(jointOrder_, jointPos0, jointNames_, qj_pin_init);
+        legged_base::reorder(jointOrder_, jointPos, jointNames_, qj_pin);
+        legged_base::reorder(jointOrder_, jointPos0, jointNames_, qj_pin_init);
         q_pin << qBase, qj_pin;
         auto status = inverseKine3Dof(qBase, q_pin, qj_pin_init, contact3DofPoss);
-        LeggedAI::reorder(jointNames_, q_pin.tail(nJoints_), jointOrder_, jointPos);
+        legged_base::reorder(jointNames_, q_pin.tail(nJoints_), jointOrder_, jointPos);
         return status;
     };
     IKStatus stanceIKOrder(VectorXd& jointPos, Vector3d base_pos, Vector3d base_eulerZYX = Vector3d::Zero());

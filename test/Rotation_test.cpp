@@ -2,7 +2,7 @@
 #include <iostream>
 
 using namespace Eigen;
-using namespace LeggedAI;
+using namespace legged_base;
 
 int main(){
 

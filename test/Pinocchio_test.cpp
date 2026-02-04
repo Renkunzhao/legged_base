@@ -11,8 +11,8 @@ int main(int argc, char* argv[]){
     if(argc > 1) {
         urdfPath = argv[1];
     } else {
-        // TODO: 用 LeggedAI::getEnv
-        urdfPath = LeggedAI::getEnv("WORKSPACE") + "/src/legged_base/urdf/g1.urdf"; // Default path
+        // TODO: 用 legged_base::getEnv
+        urdfPath = legged_base::getEnv("WORKSPACE") + "/src/legged_base/urdf/g1.urdf"; // Default path
     }
     
     // Build model from URDF

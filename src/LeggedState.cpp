@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <vector>
 
-using namespace LeggedAI;
+using namespace legged_base;
 
 // private
 std::map<std::string, Eigen::VectorXd> LeggedState::getStateMap() const {

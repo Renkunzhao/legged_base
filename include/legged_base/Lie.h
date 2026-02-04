@@ -243,9 +243,9 @@ inline Eigen::Vector4d R_ToQuat(Eigen::Matrix3d R){
     double& R32 = R(2,1);
     double& R33 = R(2,2);
     double qw = 0.5 * sqrt(R11 + R22 + R33 + 1);
-    double qx = 0.5 * LeggedAI::sgn(R32 - R23) * sqrt(R11 - R22 - R33 + 1);
-    double qy = 0.5 * LeggedAI::sgn(R13 - R31) * sqrt(R22 - R33 - R11 + 1);
-    double qz = 0.5 * LeggedAI::sgn(R21 - R12) * sqrt(R33 - R11 - R22 + 1);
+    double qx = 0.5 * legged_base::sgn(R32 - R23) * sqrt(R11 - R22 - R33 + 1);
+    double qy = 0.5 * legged_base::sgn(R13 - R31) * sqrt(R22 - R33 - R11 + 1);
+    double qz = 0.5 * legged_base::sgn(R21 - R12) * sqrt(R33 - R11 - R22 + 1);
     return {qw, qx, qy, qz};
 }
 

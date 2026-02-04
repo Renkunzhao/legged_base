@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <algorithm> // for std::max
 
-namespace LeggedAI {
+namespace legged_base {
 
 template <typename T>
 inline int sgn(T val) {
@@ -44,4 +44,4 @@ inline Eigen::MatrixXd pseudoInverseDLS(const Eigen::MatrixXd &J, double lambda 
     return J.transpose() * JJt_damped.ldlt().solve(Eigen::MatrixXd::Identity(JJt.rows(), JJt.cols()));
 }
 
-} // namespace LeggedAI
+} // namespace legged_base

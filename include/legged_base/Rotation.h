@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-namespace LeggedAI {
+namespace legged_base {
 
 /**
  * Convention (IMPORTANT):
@@ -64,4 +64,4 @@ Eigen::Vector3d eulerZYXDot2AngVelW(const Eigen::Vector3d& eulerZYX,
 Eigen::Vector3d angVelW2EulerZYXDot(const Eigen::Vector3d& eulerZYX,
                                    const Eigen::Vector3d& base_ang_vel_W);
 
-} // namespace LeggedAI
+} // namespace legged_base

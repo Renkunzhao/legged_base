@@ -10,17 +10,17 @@
 #include <pinocchio/math/rpy.hpp>
 
 using namespace Lie;
-using namespace LeggedAI;
+using namespace legged_base;
 
 void LeggedModel::loadConfig(const YAML::Node& node){
-    this->loadUrdf(LeggedAI::getEnv("WORKSPACE") + "/" + node["urdfPath"].as<string>(), "quaternion",
+    this->loadUrdf(legged_base::getEnv("WORKSPACE") + "/" + node["urdfPath"].as<string>(), "quaternion",
                     node["baseName"].as<string>(), 
                     node["contact3DofNames"].as<vector<string>>(), 
                     node["contact6DofNames"].as<vector<string>>(),
                     node["hipNames"].as<vector<string>>(),
                     node["verbose"].as<bool>());
 
-    contact3DofPossInit_ = splitVectors<Eigen::Vector3d>(yamlToEigenVector(node["contact3DofPossInit"]), 3) ;
+    contact3DofPossInit_ = splitVectors<Eigen::Vector3d>(yamlToEigenVec(node["contact3DofPossInit"]), 3) ;
     if (contact3DofPossInit_.size() != nContacts3Dof_) {
         std::cout << "[LeggedModel] contact3DofPossInit and contact3DofNames size doesn't match.\n";  
     }
@@ -33,9 +33,9 @@ void LeggedModel::loadConfig(const YAML::Node& node){
     }
     cout << endl;
 
-    qj_min_ = yamlToEigenVector(node["qj_min"]);
-    qj_max_ = yamlToEigenVector(node["qj_max"]);
-    tau_max_ = yamlToEigenVector(node["tau_max"]);
+    qj_min_ = yamlToEigenVec(node["qj_min"]);
+    qj_max_ = yamlToEigenVec(node["qj_max"]);
+    tau_max_ = yamlToEigenVec(node["tau_max"]);
     this->setJointLimitsOrder(qj_max_, qj_min_);
 }
 
@@ -133,7 +133,7 @@ vector<Eigen::Vector3d> LeggedModel::contact3DofPoss(const Eigen::VectorXd& q_pi
 
 Eigen::VectorXd LeggedModel::contact3DofPossOrder(const Eigen::VectorXd& jointPos, const Eigen::VectorXd& qBase){
     Eigen::VectorXd q_pin(this->nqPin()), qJoint(nJoints_);
-    LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qJoint);
+    legged_base::reorder(jointOrder_, jointPos, jointNames_, qJoint);
     if (qBase.size() == 0) {
         q_pin << qBase0(), qJoint;
     } else {
@@ -199,7 +199,7 @@ Eigen::MatrixXd LeggedModel::jacobian3Dof(Eigen::VectorXd q_pin){
 
 Eigen::MatrixXd LeggedModel::jacobian3DofOrder(const Eigen::VectorXd& jointPos, const Eigen::VectorXd& qBase) {
     Eigen::VectorXd q_pin(this->nqPin()), qJoint(nJoints_);
-    LeggedAI::reorder(jointOrder_, jointPos, jointNames_, qJoint);
+    legged_base::reorder(jointOrder_, jointPos, jointNames_, qJoint);
     if (qBase.size() == 0) {
         q_pin << qBase0(), qJoint;
     } else {
@@ -207,7 +207,7 @@ Eigen::MatrixXd LeggedModel::jacobian3DofOrder(const Eigen::VectorXd& jointPos, 
     }
     Eigen::MatrixXd jac_reordered(3*nContacts3Dof_, 6 + nJoints_);
     jac_reordered = jacobian3Dof(q_pin);
-    LeggedAI::reorder_cols(jointNames_, jacobian3Dof(q_pin).rightCols(nJoints_), jointOrder_, jac_reordered.rightCols(nJoints_));
+    legged_base::reorder_cols(jointNames_, jacobian3Dof(q_pin).rightCols(nJoints_), jointOrder_, jac_reordered.rightCols(nJoints_));
     return jac_reordered;
 }
 

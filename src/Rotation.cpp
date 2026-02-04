@@ -3,7 +3,7 @@
 #include "legged_base/Rotation.h"
 #include <cmath>
 
-namespace LeggedAI {
+namespace legged_base {
 
 using namespace std;
 using namespace Eigen;
@@ -97,4 +97,4 @@ Vector3d angVelW2EulerZYXDot(const Vector3d& eulerZYX,
     return Vector3d(dyaw, dpitch, droll);
 }
 
-} // namespace LeggedAI
+} // namespace legged_base

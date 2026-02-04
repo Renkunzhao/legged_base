@@ -22,7 +22,7 @@ int main() {
     auto start = high_resolution_clock::now();
     Eigen::VectorXd dq_svd;
     for (int i = 0; i < N; i++) {
-        dq_svd = LeggedAI::pseudoInverseSVD(J) * v;   // 直接计算 J^+ v
+        dq_svd = legged_base::pseudoInverseSVD(J) * v;   // 直接计算 J^+ v
     }
     auto end = high_resolution_clock::now();
     double time_svd = duration_cast<milliseconds>(end - start).count();
@@ -31,7 +31,7 @@ int main() {
     start = high_resolution_clock::now();
     Eigen::VectorXd dq_dls;
     for (int i = 0; i < N; i++) {
-        dq_dls = LeggedAI::pseudoInverseDLS(J) * v;   // 直接计算 J^+_λ v
+        dq_dls = legged_base::pseudoInverseDLS(J) * v;   // 直接计算 J^+_λ v
     }
     end = high_resolution_clock::now();
     double time_dls = duration_cast<milliseconds>(end - start).count();

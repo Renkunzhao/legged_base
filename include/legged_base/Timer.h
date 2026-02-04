@@ -8,7 +8,7 @@
 
 using namespace std::chrono;
 
-namespace LeggedAI
+namespace legged_base
 {
 
 class Timer {
@@ -167,4 +167,4 @@ private:
 
 };
 
-} // namespace LeggedAI
+} // namespace legged_base
