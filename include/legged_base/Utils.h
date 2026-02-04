@@ -44,15 +44,14 @@ inline double smoothstep(double t, size_t order = 5) {
     }
 }
 
-inline double lerp(double t, const double& x0, const double& x1, size_t order = 5) {
+inline double smoothLerp(double t, const double& x0, const double& x1, size_t order = 5) {
     double s = smoothstep(t, order);
     return x0 + (x1 - x0) * s;
 }
 
-// Linear interpolate: t in [0,1]
 template<class DerivedA, class DerivedB>
 inline typename DerivedA::PlainObject
-lerp(double t,
+smoothLerp(double t,
      const Eigen::MatrixBase<DerivedA>& x0,
      const Eigen::MatrixBase<DerivedB>& x1,
      size_t order = 5) {
@@ -65,7 +64,7 @@ inline VectorXd baseSlerp(double t,
                         const Eigen::VectorXd& qBaseInit, 
                         size_t order = 5) {
     // 1. Position interpolation
-    Eigen::Vector3d base_pos = lerp(t, qBaseInit.head<3>(), qBaseDes.head<3>(), order).eval();
+    Eigen::Vector3d base_pos = smoothLerp(t, qBaseInit.head<3>(), qBaseDes.head<3>(), order).eval();
 
     // 2. Orientation interpolation
     Eigen::Quaterniond quat_init(qBaseInit[6], qBaseInit[3], qBaseInit[4], qBaseInit[5]); // w,x,y,z
