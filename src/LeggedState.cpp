@@ -1,6 +1,6 @@
 #include "legged_base/LeggedState.h"
 #include "legged_base/Utils.h"
-#include "legged_base/Rotation.h"
+#include "legged_base/math/rotation_euler_zyx.hpp"
 #include "logger/CsvLogger.h"
 
 #include <Eigen/src/Geometry/Quaternion.h>

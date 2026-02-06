@@ -2,7 +2,7 @@
 #include "legged_base/Math.h"
 #include "legged_base/Lie.h"
 #include "legged_base/Utils.h"
-#include "legged_base/Rotation.h"
+#include "legged_base/math/rotation_euler_zyx.hpp"
 #include <cstddef>
 #include <iostream>
 #include <pinocchio/parsers/urdf.hpp>

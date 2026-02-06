@@ -1,4 +1,4 @@
-#include "legged_base/Rotation.h"
+#include "legged_base/math/rotation_euler_zyx.hpp"
 #include <iostream>
 
 using namespace Eigen;
