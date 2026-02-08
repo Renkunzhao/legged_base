@@ -121,4 +121,29 @@ inline Quat<Scalar> extractYawQuaternion(const Quat<Scalar>& q) {
   return Quat<Scalar>(Eigen::AngleAxis<Scalar>(yaw, Vec3<Scalar>::UnitZ()));
 }
 
+template <typename Derived>
+inline typename Derived::Scalar
+yawFromR(const Eigen::MatrixBase<Derived>& R) {
+  static_assert(Derived::RowsAtCompileTime == 3 &&
+                Derived::ColsAtCompileTime == 3,
+                "yawFromR: R must be 3x3");
+
+  using Scalar = typename Derived::Scalar;
+
+  // ZYX convention: yaw = atan2(R(1,0), R(0,0))
+  return std::atan2(R(1, 0), R(0, 0));
+}
+
+template <typename Scalar>
+inline Eigen::Matrix<Scalar, 3, 3> Rz(Scalar yaw) {
+  const Scalar c = std::cos(yaw);
+  const Scalar s = std::sin(yaw);
+
+  Eigen::Matrix<Scalar, 3, 3> R;
+  R << c, -s, Scalar(0),
+       s,  c, Scalar(0),
+       Scalar(0), Scalar(0), Scalar(1);
+  return R;
+}
+
 } // namespace legged_base
