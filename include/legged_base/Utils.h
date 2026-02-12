@@ -10,6 +10,8 @@
 
 namespace legged_base {
 
+inline constexpr double kGravity = 9.81;
+
 inline std::string getEnv(const std::string &env_name) {
   const char *env_value = std::getenv(env_name.c_str());
   if (!env_value) {
@@ -176,7 +178,6 @@ inline std::vector<VecT> splitVectors(const Eigen::VectorXd &big,
 
 inline Eigen::VectorXd
 computeNominalEE3DofForces(const std::vector<bool> &contactFlag, double mass) {
-  const double g = 9.81;
   const size_t n_legs = contactFlag.size();
   Eigen::VectorXd f_des = Eigen::VectorXd::Zero(3 * n_legs);
 
@@ -191,7 +192,7 @@ computeNominalEE3DofForces(const std::vector<bool> &contactFlag, double mass) {
     return f_des;
 
   // 均分竖向力
-  double fz = mass * g / n_contacts;
+  double fz = mass * kGravity / n_contacts;
 
   for (size_t i = 0; i < n_legs; ++i) {
     if (contactFlag[i]) {

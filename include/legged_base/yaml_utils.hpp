@@ -17,9 +17,14 @@ namespace detail {
 
 inline std::string toString(std::string_view sv) { return std::string(sv); }
 
+// If ctx is empty, print a sane default.
+inline std::string_view ctxOrRoot(std::string_view ctx) {
+  return ctx.empty() ? std::string_view("<root>") : ctx;
+}
+
 inline std::runtime_error missingKey(std::string_view ctx, std::string_view key) {
   std::ostringstream oss;
-  oss << "[YAML][" << ctx << "] missing required key: `" << key << "`";
+  oss << "[YAML][" << ctxOrRoot(ctx) << "] missing required key: `" << key << "`";
   return std::runtime_error(oss.str());
 }
 
@@ -28,7 +33,7 @@ inline std::runtime_error badType(std::string_view ctx,
                                  std::string_view expected,
                                  const YAML::Exception& e) {
   std::ostringstream oss;
-  oss << "[YAML][" << ctx << "] bad type for key: `" << key << "`, expected "
+  oss << "[YAML][" << ctxOrRoot(ctx) << "] bad type for key: `" << key << "`, expected "
       << expected << ". (" << e.what() << ")";
   return std::runtime_error(oss.str());
 }
@@ -43,7 +48,7 @@ inline bool hasKey(const YAML::Node& node, std::string_view key) {
 
 inline YAML::Node requireNode(const YAML::Node& node,
                               std::string_view key,
-                              std::string_view ctx) {
+                              std::string_view ctx = "") {
   if (!node || !node[detail::toString(key)]) {
     throw detail::missingKey(ctx, key);
   }
@@ -55,7 +60,7 @@ inline YAML::Node requireNode(const YAML::Node& node,
 template <typename T>
 inline T require(const YAML::Node& node,
                  std::string_view key,
-                 std::string_view ctx) {
+                 std::string_view ctx = "") {
   static_assert(!std::is_reference_v<T>, "T must be a value type");
   YAML::Node n = requireNode(node, key, ctx);
   try {
@@ -67,23 +72,27 @@ inline T require(const YAML::Node& node,
 }
 
 // Small convenience wrappers (optional)
-inline double requireDouble(const YAML::Node& node, std::string_view key, std::string_view ctx) {
-  try {
-    return require<double>(node, key, ctx);
-  } catch (const std::runtime_error& e) {
-    throw;  // keep stack/message
-  }
+inline double requireDouble(const YAML::Node& node,
+                            std::string_view key,
+                            std::string_view ctx = "") {
+  return require<double>(node, key, ctx);
 }
 
-inline int requireInt(const YAML::Node& node, std::string_view key, std::string_view ctx) {
+inline int requireInt(const YAML::Node& node,
+                      std::string_view key,
+                      std::string_view ctx = "") {
   return require<int>(node, key, ctx);
 }
 
-inline bool requireBool(const YAML::Node& node, std::string_view key, std::string_view ctx) {
+inline bool requireBool(const YAML::Node& node,
+                        std::string_view key,
+                        std::string_view ctx = "") {
   return require<bool>(node, key, ctx);
 }
 
-inline std::string requireString(const YAML::Node& node, std::string_view key, std::string_view ctx) {
+inline std::string requireString(const YAML::Node& node,
+                                 std::string_view key,
+                                 std::string_view ctx = "") {
   return require<std::string>(node, key, ctx);
 }
 
@@ -105,7 +114,7 @@ template <typename T>
 inline T readOr(const YAML::Node& node,
                 std::string_view key,
                 const T& default_value,
-                std::string_view ctx) {
+                std::string_view ctx = "") {
   if (!hasKey(node, key)) return default_value;
   // If present but wrong type, throw with a useful message:
   return require<T>(node, key, ctx);
@@ -113,18 +122,22 @@ inline T readOr(const YAML::Node& node,
 
 // ---------- Minimal value checks (optional, but handy) ----------
 
-inline void requirePositive(double v, std::string_view name, std::string_view ctx) {
+inline void requirePositive(double v,
+                            std::string_view name,
+                            std::string_view ctx = "") {
   if (!(v > 0.0)) {
     std::ostringstream oss;
-    oss << "[YAML][" << ctx << "] `" << name << "` must be > 0, got " << v;
+    oss << "[YAML][" << detail::ctxOrRoot(ctx) << "] `" << name << "` must be > 0, got " << v;
     throw std::runtime_error(oss.str());
   }
 }
 
-inline void requireNonNegative(double v, std::string_view name, std::string_view ctx) {
+inline void requireNonNegative(double v,
+                               std::string_view name,
+                               std::string_view ctx = "") {
   if (v < 0.0) {
     std::ostringstream oss;
-    oss << "[YAML][" << ctx << "] `" << name << "` must be >= 0, got " << v;
+    oss << "[YAML][" << detail::ctxOrRoot(ctx) << "] `" << name << "` must be >= 0, got " << v;
     throw std::runtime_error(oss.str());
   }
 }

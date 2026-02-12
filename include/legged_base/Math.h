@@ -10,6 +10,17 @@ inline int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
+inline Eigen::Matrix3d skew(const Eigen::Vector3d& v) {
+  Eigen::Matrix3d s = Eigen::Matrix3d::Zero();
+  s(0, 1) = -v.z();
+  s(0, 2) = v.y();
+  s(1, 0) = v.z();
+  s(1, 2) = -v.x();
+  s(2, 0) = -v.y();
+  s(2, 1) = v.x();
+  return s;
+}
+
 /// @brief Moore–Penrose pseudoinverse using SVD
 /// @param J  Input matrix
 /// @param tol  Relative tolerance (default 1e-9)
