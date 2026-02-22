@@ -1,15 +1,16 @@
 #include "legged_base/LeggedState.h"
-#include "legged_base/Utils.h"
-#include "legged_base/math/rotation_euler_zyx.hpp"
-#include "logger/CsvLogger.h"
 
-#include <Eigen/src/Geometry/Quaternion.h>
 #include <iostream>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <pinocchio/math/rpy.hpp>
 #include <stdexcept>
 #include <vector>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/src/Geometry/Quaternion.h>
+#include <pinocchio/math/rpy.hpp>
+
+#include "legged_base/Utils.h"
+#include "legged_base/math/rotation_euler_zyx.hpp"
+#include <logger/CsvLogger.h>
 
 using namespace legged_base;
 
