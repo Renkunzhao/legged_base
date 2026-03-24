@@ -6,8 +6,6 @@
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/multibody/data.hpp>
 #include <pinocchio/spatial/explog.hpp>
-#include <manif/impl/se3/SE3.h>
-#include <manif/impl/so3/SO3.h>
 #include <manif/manif.h>
 
 using namespace Lie;

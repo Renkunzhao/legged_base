@@ -1,6 +1,12 @@
 # Legged Base
 Utilities for legged robots, including timers, rotation transforms, and interpolation.
 
+## CsvLogger
+`CsvLogger` is now provided directly by `legged_base`.
+
+- Preferred include: `legged_base/CsvLogger.h`
+- Compatibility include kept: `logger/CsvLogger.h`
+
 ## LeggedState
 LeggedState represents the state of a legged robot.
 

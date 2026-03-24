@@ -30,12 +30,12 @@ find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(manif REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(logger REQUIRED)
 
 ##############################
 # 3️⃣ 创建库（导出给上游用）
 ##############################
 add_library(${PROJECT_NAME} STATIC
+    src/CsvLogger.cpp
     src/LeggedState.cpp
     src/LeggedModel.cpp
 )
@@ -54,7 +54,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Eigen3::Eigen
     pinocchio::pinocchio
     yaml-cpp
-    logger::CsvLogger
 )
 
 ##############################

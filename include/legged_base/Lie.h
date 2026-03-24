@@ -6,10 +6,6 @@
 
 #include <Eigen/Dense>
 
-#include <pinocchio/math/quaternion.hpp>
-#include <pinocchio/math/rpy.hpp>
-#include <pinocchio/math/rotation.hpp>
-
 #include "legged_base/Math.h"
 
 namespace Lie {
